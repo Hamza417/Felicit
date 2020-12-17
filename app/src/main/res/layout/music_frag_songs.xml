@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<app.simple.felicit.decoration.views.CustomRecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/songs_recycler_view"
+    android:layout_width="match_parent"
+    android:background="@color/mainBackground"
+    android:layoutAnimation="@anim/list_animation_controller"
+    android:layout_height="match_parent" />

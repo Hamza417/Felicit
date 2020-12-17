@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App Colors -->
+    <color name="appAccent">#0090FF</color>
+    <color name="mainBackground">#FFFFFF</color>
+    <color name="iconPrimary">#333333</color>
+    <color name="iconSecondary">#515151</color>
+    <color name="iconDisabled">#515151</color>
+    <color name="textPrimary">@color/iconPrimary</color>
+    <color name="textSecondary">#5C5C5C</color>
+    <color name="textSelected">@color/appAccent</color>
+    <color name="dividerColor">#AAAAAA</color>
+    <color name="rippleColor">#D3D3D3</color>
+    <color name="albumCoverTextBackground">#FFFFFF</color>
+    <color name="gradientEndColor">#FFFFFF</color>
+
+    // Fast Scroller
+    <color name="fast_scroller_bg">#FFFFFF</color>
+    <color name="fast_scroller_pressed">#f0f0f0</color>
+    <color name="fast_scroller_stroke">#2E2E2E</color>
+    <color name="fast_scroller_text">@color/textPrimary</color>
+    <color name="fast_scroller_arrows">#000000</color>
+
+    // Icon Gradient
+    <color name="library_icons_start_color">#28313B</color>
+    <color name="library_icons_end_color">#485461</color>
 </resources>

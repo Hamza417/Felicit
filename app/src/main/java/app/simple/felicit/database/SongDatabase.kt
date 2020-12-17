@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import app.simple.felicit.model.Song
+import app.simple.felicit.medialoader.mediaHolders.AudioContent
 
-@Database(entities = [Song::class], exportSchema = false, version = 1)
+@Database(entities = [AudioContent::class], exportSchema = false, version = 1)
 abstract class SongDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao?
+    abstract fun randomDao() : RandomDao?
 
     companion object {
         private var instance: SongDatabase? = null

@@ -20,7 +20,7 @@ object MediaLoader {
     /**
      * Returns a static instance of [AudioGet]
      */
-    fun withAudioContext(context: Context?): AudioGet {
-        return AudioGet.getInstance(context)
+    fun withAudioContext(context: Context?): AudioGet? {
+        return context?.let { AudioGet.getInstance(it) }
     }
 }

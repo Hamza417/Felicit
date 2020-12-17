@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/ic_music_note"
+            android:scaleType="centerInside"
+            android:transitionName="all_songs_header"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/light"
+            android:text="All Songs"
+            android:textColor="@color/textPrimary"
+            android:textSize="18pt"
+            android:transitionName="all_songs_text" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/adapter_songs_total_count"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:fontFamily="@font/medium"
+            android:text="Total Songs"
+            android:textColor="@color/textSecondary"
+            android:textSize="6pt" />
+
+        <ImageButton
+            android:id="@+id/adapter_songs_shuffle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/ripple"
+            android:src="@drawable/ic_shuffle"
+            android:tint="@color/iconSecondary" />
+
+        <ImageButton
+            android:id="@+id/adapter_songs_main_menu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:background="@drawable/ripple"
+            android:src="@drawable/ic_menu_open"
+            android:tint="@color/iconSecondary" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

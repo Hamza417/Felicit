@@ -1,33 +1,18 @@
 package app.simple.felicit.database
 
 import androidx.room.*
-import app.simple.felicit.model.Song
+import app.simple.felicit.medialoader.mediaHolders.AudioContent
 
 @Dao
 interface SongDao {
-    @Query("SELECT * FROM songs ORDER BY id ASC")
-    fun getList(): List<Song>
+    @Query("SELECT * FROM songs")
+    fun getList(): MutableList<AudioContent>
 
     @Query("SELECT * FROM songs ORDER BY title COLLATE nocase ASC")
-    fun getSongLinearList(): List<Song>
+    fun getSongLinearList(): MutableList<AudioContent>
 
-    @Query("SELECT * FROM songs ORDER BY title COLLATE nocase DESC")
-    fun getSongReverseList(): List<Song>
-
-    @Query("SELECT DISTINCT * FROM songs GROUP BY artists ORDER BY artists COLLATE nocase ASC")
-    fun getArtistList(): List<Song>
-
-    @Query("SELECT DISTINCT * FROM songs GROUP BY album ORDER BY album COLLATE nocase ASC")
-    fun getAlbumList(): List<Song>
-
-    @Query("SELECT * FROM songs ORDER BY date DESC limit 50")
-    fun getDateList(): List<Song>
-
-    @Query("SELECT DISTINCT * FROM songs GROUP BY genre ORDER BY genre COLLATE nocase ASC")
-    fun getGenreList(): List<Song>
-
-    @Query("SELECT DISTINCT * FROM songs GROUP BY folder ORDER BY folder COLLATE nocase ASC")
-    fun getFoldersList(): List<Song>
+    @Query("SELECT * FROM songs ORDER BY artists COLLATE nocase ASC")
+    fun getArtistsLinearList(): MutableList<AudioContent>
 
     /**
      * Insert and save song to Database
@@ -35,7 +20,7 @@ interface SongDao {
      * @param song loads song details
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSong(song: Song)
+    suspend fun insertSong(song: MutableList<AudioContent>)
 
     /**
      * Update note
@@ -43,11 +28,17 @@ interface SongDao {
      * @param song that will be update
      */
     @Update
-    suspend fun updateSong(song: Song)
+    suspend fun updateSong(song: AudioContent)
 
     /**
      * @param song removes a song from the list
      */
     @Delete
-    suspend fun deleteSong(song: Song)
+    suspend fun deleteSong(song: AudioContent)
+
+    /**
+     * Deletes the entire database, possibly to create a new one
+     */
+    @Query("DELETE FROM songs")
+    fun nukeTable()
 }

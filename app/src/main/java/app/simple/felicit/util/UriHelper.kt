@@ -7,7 +7,9 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 
-
+/**
+ *  Get raw path of the file from content URI
+ */
 fun getPathFromURI(context: Context, uri: Uri): String {
     var realPath = String()
     uri.path?.let { path ->
@@ -41,8 +43,7 @@ fun getPathFromURI(context: Context, uri: Uri): String {
                 }
                 cursor.close()
             }
-        } catch (e: Exception) {
-            println(e)
+        } catch (ignored: Exception) {
         }
     }
     return realPath
