@@ -12,8 +12,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.HorizontalListViewHolder
-import app.simple.felicit.glide.modules.loadFromFileDescriptor
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
+import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
+import app.simple.felicit.medialoader.mediamodels.AudioContent
 
 class RandomPicksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -28,7 +28,7 @@ class RandomPicksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is Holder) {
-            holder.albumArt.loadFromFileDescriptor(holder.itemView.context, Uri.parse(songs[position].fileStringUri))
+            holder.albumArt.loadFromUri(holder.itemView.context, Uri.parse(songs[position].artUri))
             holder.title.text = songs[position].title
             holder.artist.text = songs[position].artist
 

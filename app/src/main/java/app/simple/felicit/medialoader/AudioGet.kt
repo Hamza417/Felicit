@@ -1,81 +1,76 @@
 package app.simple.felicit.medialoader
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
-import app.simple.felicit.medialoader.mediaHolders.AudioAlbumContent
-import app.simple.felicit.medialoader.mediaHolders.AudioArtistContent
-import app.simple.felicit.medialoader.mediaHolders.audioFolderContent
-import java.io.File
-import java.util.*
+import app.simple.felicit.medialoader.mediamodels.AudioAlbumContent
+import app.simple.felicit.medialoader.mediamodels.AudioArtistContent
+import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.medialoader.mediamodels.GenreContent
 
-@SuppressLint("NewApi")
-@Suppress("deprecation")
+/**
+ * Due to horrible coding patterns of people at Google and whoever designed the MediaStore API
+ * This region of the code is messed up, all the Media Columns will work up till API
+ * I don't know what and not only to the API it warning about
+ *
+ * use @suppress NewApi to suppress all the warnings but make sure to check if all the columns are working
+ * Currently [MediaStore.Audio.Media.GENRE] is the only one not working in API 29 and documentation says that
+ * it is added only in API 30, currently I don't have the resources to verify this information
+ */
+@Suppress("deprecation", "newApi", "unused")
 class AudioGet private constructor(context: Context) {
     private val audioContext: Context = context.applicationContext
 
     /**
      * Returns an Arraylist of [AudioContent]
      */
-    fun getAllAudioContent(contentLocation: Uri?): ArrayList<AudioContent> {
+    fun getAllAudioContent(contentLocation: Uri): ArrayList<AudioContent> {
         val allAudioContent = ArrayList<AudioContent>()
-        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(contentLocation!!, projection, selection, null, "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC")
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val audioContent = AudioContent()
-                    val songName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = songName
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    val contentUri = Uri.withAppendedPath(contentLocation, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
 
-                    //for android 10 exclusively
-                    /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        Uri contentUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, String.valueOf(id));
-                        try {
-                            AssetFileDescriptor file = audioContext.getContentResolver().openAssetFileDescriptor(contentUri, "r");
-                            audioContent.setMusicPathQ(file);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }*/try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ignored: Exception) {
-                        audioContent.dateAdded = 0
-                    }
+        cursor = audioContext.contentResolver.query(
+            contentLocation,
+            audioProjection,
+            selection,
+            null,
+            "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC"
+        )
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                val audioContent = AudioContent()
+                val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+
+                audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                audioContent.fileStringUri = Uri.withAppendedPath(contentLocation, audioContent.musicID.toString()).toString()
+                audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+                audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                audioContent.dateTaken = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_TAKEN))
+                audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), albumId.toString()).toString()
+                audioContent.track = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.TRACK))
+                audioContent.mimeType = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE))
+                audioContent.year = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.YEAR))
+
+                //for android 10 exclusively
+                /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    Uri contentUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, String.valueOf(id));
                     try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ignored: Exception) {
-                        audioContent.dateModified = 0
+                        AssetFileDescriptor file = audioContext.getContentResolver().openAssetFileDescriptor(contentUri, "r");
+                        audioContent.setMusicPathQ(file);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
                     }
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val albumName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artistName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName
-                    allAudioContent.add(audioContent)
-                } while (cursor!!.moveToNext())
-            }
+                }*/
+
+                allAudioContent.add(audioContent)
+            } while (cursor!!.moveToNext())
             cursor!!.close()
         }
 
@@ -84,64 +79,91 @@ class AudioGet private constructor(context: Context) {
         return allAudioContent
     }
 
+    fun getAllGenre(contentLocation: Uri): ArrayList<GenreContent> {
+        val genreContentList = ArrayList<GenreContent>()
+
+        genresCursor = audioContext.contentResolver.query(
+            contentLocation,
+            genresProjection,
+            null,
+            null,
+            "LOWER (" + MediaStore.Audio.Genres.NAME + ") ASC"
+        )
+
+        if (genresCursor != null && genresCursor!!.moveToFirst()) {
+            do {
+                val genreContent = GenreContent()
+                genreContent.genreId = genresCursor!!.getInt(genresCursor!!.getColumnIndex(MediaStore.Audio.Genres._ID))
+                genreContent.genreName = genresCursor!!.getString(genresCursor!!.getColumnIndex(MediaStore.Audio.Genres.NAME))
+                genreContentList.add(genreContent)
+
+            } while (genresCursor!!.moveToNext())
+
+            genresCursor!!.close()
+        }
+
+        return genreContentList
+    }
+
+    fun getAllSongsForGenre() {
+        val audioContent = AudioContent()
+
+        val uri = MediaStore.Audio.Genres.getContentUriForAudioId("external", audioContent.musicID.toInt())
+
+        genresCursor = audioContext.contentResolver.query(uri, genresProjection, null, null, null)
+        val genreColumnIndex: Int = genresCursor!!.getColumnIndexOrThrow(MediaStore.Audio.Genres.NAME)
+
+        if (genresCursor!!.moveToFirst()) {
+            //audioContent.genre = genresCursor!!.getString(genreColumnIndex)
+            genresCursor!!.close()
+        }
+    }
+
     /**
      * Returns an ArrayList of [AudioAlbumContent]
      */
     fun getAllAlbums(contentLocation: Uri?): ArrayList<AudioAlbumContent> {
         val audioAlbumContents = ArrayList<AudioAlbumContent>()
         val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(contentLocation!!, projection, selection, null, "LOWER (" + MediaStore.Audio.Media.ALBUM + ") ASC")
+
+        cursor = audioContext.contentResolver.query(contentLocation!!, audioProjection, selection, null, "LOWER (" + MediaStore.Audio.Media.ALBUM + ") ASC")
+
         val albumNames = ArrayList<String>()
+
         if (cursor != null) {
             if (cursor!!.moveToFirst()) {
                 do {
                     var album: AudioAlbumContent
                     val audioContent = AudioContent()
-                    val song_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = song_name
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val album_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = album_name
-                    val album_id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, album_id.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val contentUri = Uri.withAppendedPath(contentLocation, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val artist_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artist_name
-                    if (!albumNames.contains(album_id.toString())) {
-                        albumNames.add(album_id.toString())
-                        album = AudioAlbumContent(album_name, album_id, imageUri, artist_name)
+                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+
+                    audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                    audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                    audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                    audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                    audioContent.fileStringUri = Uri.withAppendedPath(contentLocation, audioContent.musicID.toString()).toString()
+                    audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                    audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                    audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                    audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+                    audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                    audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                    audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                    audioContent.dateTaken = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_TAKEN))
+                    audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), albumId.toString()).toString()
+                    audioContent.track = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.TRACK))
+                    audioContent.mimeType = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE))
+                    audioContent.year = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.YEAR))
+
+                    if (!albumNames.contains(albumId.toString())) {
+                        albumNames.add(albumId.toString())
+                        album = AudioAlbumContent(audioContent.album, albumId, Uri.parse(audioContent.artUri), audioContent.artist)
                         album.addAudioContent(audioContent)
                         album.addNumberOfSongs()
                         audioAlbumContents.add(album)
                     } else {
                         for (i in audioAlbumContents.indices) {
-                            if (audioAlbumContents[i].albumId.toString() == album_id.toString()) {
+                            if (audioAlbumContents[i].albumId.toString() == albumId.toString()) {
                                 audioAlbumContents[i].addAudioContent(audioContent)
                                 audioAlbumContents[i].addNumberOfSongs()
                             }
@@ -161,70 +183,57 @@ class AudioGet private constructor(context: Context) {
      */
     private fun getAllAlbumsByArtistId(artist_id: String, contentLocation: Uri): ArrayList<AudioAlbumContent> {
         val allAlbums = ArrayList<AudioAlbumContent>()
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(contentLocation, projection,
-                                                    MediaStore.Audio.Artists.ARTIST + " like ? ", arrayOf("%$artist_id%"), "LOWER (" + MediaStore.Audio.Artists.ARTIST + ") ASC")
+        cursor = audioContext.contentResolver.query(
+            contentLocation,
+            audioProjection,
+            MediaStore.Audio.Artists.ARTIST + " like ? ",
+            arrayOf("%$artist_id%"),
+            "LOWER (" + MediaStore.Audio.Artists.ARTIST + ") ASC"
+        )
+
         val albumNames = ArrayList<String>()
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    var album: AudioAlbumContent
-                    val audioContent = AudioContent()
-                    val song_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = song_name
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName
-                    val contentUri = Uri.withAppendedPath(contentLocation, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val artistName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName
-                    if (!albumNames.contains(albumId.toString())) {
-                        albumNames.add(albumId.toString())
-                        album = AudioAlbumContent(albumName, albumId, imageUri, artistName)
-                        album.addAudioContent(audioContent)
-                        album.addNumberOfSongs()
-                        allAlbums.add(album)
-                    } else {
-                        for (i in allAlbums.indices) {
-                            if (allAlbums[i].albumId.toString() == albumId.toString()) {
-                                allAlbums[i].addAudioContent(audioContent)
-                                allAlbums[i].addNumberOfSongs()
-                            }
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                var album: AudioAlbumContent
+                val audioContent = AudioContent()
+
+                audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                audioContent.fileStringUri = Uri.withAppendedPath(contentLocation, audioContent.musicID.toString()).toString()
+                audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+                audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                audioContent.dateTaken = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_TAKEN))
+                audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), audioContent.albumId.toString()).toString()
+                audioContent.track = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.TRACK))
+                audioContent.mimeType = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE))
+                audioContent.year = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.YEAR))
+
+                if (!albumNames.contains(audioContent.albumId.toString())) {
+                    albumNames.add(audioContent.albumId.toString())
+                    album = AudioAlbumContent(audioContent.album, audioContent.albumId, Uri.parse(audioContent.artUri), audioContent.artist)
+                    album.addAudioContent(audioContent)
+                    album.addNumberOfSongs()
+                    allAlbums.add(album)
+                } else {
+                    for (i in allAlbums.indices) {
+                        if (allAlbums[i].albumId.toString() == audioContent.albumId.toString()) {
+                            allAlbums[i].addAudioContent(audioContent)
+                            allAlbums[i].addNumberOfSongs()
                         }
                     }
-                } while (cursor!!.moveToNext())
-            }
+                }
+
+            } while (cursor!!.moveToNext())
             cursor!!.close()
         }
 
-        //try saving in cache for better loading next time
         audioContext.externalCacheDir
         return allAlbums
     }
@@ -235,20 +244,18 @@ class AudioGet private constructor(context: Context) {
      */
     fun getAllArtistIds(contentLocation: Uri?): ArrayList<String> {
         val allArtistIds = ArrayList<String>()
-        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
-        val projection = arrayOf(MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ARTIST_ID, MediaStore.Audio.Media.ARTIST_KEY, MediaStore.Audio.Artists.ARTIST)
-        cursor = audioContext.contentResolver.query(contentLocation!!, projection, selection, null, "LOWER (" + MediaStore.Audio.Artists.ARTIST + ") ASC")
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val artistId = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Artists.ARTIST))
-                    if (!allArtistIds.contains(artistId.toString())) {
-                        allArtistIds.add(artistId.toString())
-                    }
-                } while (cursor!!.moveToNext())
-            }
-            cursor!!.close()
+
+        cursor = audioContext.contentResolver.query(contentLocation!!, audioProjection, selection, null, "LOWER (" + MediaStore.Audio.Artists.ARTIST + ") ASC")
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                val artistId = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Artists.ARTIST))
+                if (!allArtistIds.contains(artistId.toString())) {
+                    allArtistIds.add(artistId.toString())
+                }
+            } while (cursor!!.moveToNext())
         }
+        cursor!!.close()
         return allArtistIds
     }
 
@@ -259,150 +266,44 @@ class AudioGet private constructor(context: Context) {
     fun getAllArtists(ids: ArrayList<String>, contentLocation: Uri): ArrayList<AudioArtistContent> {
         val audioArtistContents = ArrayList<AudioArtistContent>()
         for (i in ids.indices) {
-            val artist = AudioArtistContent()
             val artistAlbums = getAllAlbumsByArtistId(ids[i], contentLocation)
-            artist.albums = artistAlbums
-            artist.artistName = ids[i]
-            audioArtistContents.add(artist)
+            audioArtistContents.add(AudioArtistContent(ids[i], artistAlbums))
         }
         return audioArtistContents
-    }//try saving in cache for better loading next time
+    }
 
-    /**
-     * Returns and ArrayList of [audioFolderContent] from the android MediaStore
-     */
-    val allAudioFolderContent: ArrayList<audioFolderContent>
-        get() {
-            val musicFolders = ArrayList<audioFolderContent>()
-            val allSongsUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
-            val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.BUCKET_ID, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM,
-                                     MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID)
-            cursor = audioContext.contentResolver.query(allSongsUri, projection, selection, null, "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC")
-            val folders = ArrayList<Int>()
-            try {
-                if (cursor != null) {
-                    cursor!!.moveToFirst()
-                }
-                do {
-                    val audioFolder = audioFolderContent()
-                    val audioContent = AudioContent()
-                    val dataPath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    val path = File(dataPath)
-                    val parent = File(path.parent!!)
-                    val parentName = parent.name
-                    val parentPath = parent.absolutePath
-                    val duration = cursor!!.getInt(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.musicSize = duration.toLong()
-                    val bucketId = cursor!!.getInt(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_ID))
-                    val songName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = songName
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    audioContent.filePath = dataPath
-                    val audio = File(dataPath)
-                    audioContent.musicSize = audio.length()
-                    val contentUri = Uri.withAppendedPath(externalContentUri, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val album_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = album_name
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val album_id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, album_id.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artist_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artist_name
-                    if (!folders.contains(bucketId)) {
-                        folders.add(bucketId)
-                        audioFolder.bucket_id = bucketId
-                        audioFolder.folderName = parentName
-                        audioFolder.folderPath = parentPath
-                        audioFolder.musicFiles.add(audioContent)
-                        musicFolders.add(audioFolder)
-                    } else {
-                        for (i in musicFolders.indices) {
-                            if (musicFolders[i].folderName == parentName) {
-                                musicFolders[i].musicFiles.add(audioContent)
-                            }
-                        }
-                    }
-                } while (cursor!!.moveToNext())
-                cursor!!.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            for (i in musicFolders.indices) {
-                Log.d("audio folders", musicFolders[i].folderName + " and path = " + musicFolders[i].folderPath + " " + musicFolders[i].numberOfSongs)
-            }
-
-            //try saving in cache for better loading next time
-            audioContext.externalCacheDir
-            return musicFolders
-        }
-
-    fun getMusicMetaData(dataPath: String): AudioContent {
+    fun getMusicMetaData(path: String): AudioContent {
         val audioContent = AudioContent()
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(externalContentUri, projection,
-                                                    MediaStore.Audio.Media.DATA + " like ? ", arrayOf("%$dataPath%"), null)
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val song_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = song_name
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    val contentUri = Uri.withAppendedPath(externalContentUri, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val albumName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artistName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName
-                } while (cursor!!.moveToNext())
-            }
-            cursor!!.close()
+
+        cursor = audioContext.contentResolver.query(
+            externalContentUri,
+            audioProjection,
+            MediaStore.Audio.Media.DATA + " like ? ",
+            arrayOf("%$path%"),
+            null
+        )
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+            audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+            audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+            audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+            audioContent.fileStringUri = Uri.withAppendedPath(externalContentUri, audioContent.musicID.toString()).toString()
+            audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+            audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+            audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+            audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+            audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+            audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+            audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+            audioContent.dateTaken = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_TAKEN))
+            audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), audioContent.albumId.toString()).toString()
+            audioContent.track = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.TRACK))
+            audioContent.mimeType = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE))
+            audioContent.year = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.YEAR))
         }
+        cursor!!.close()
+
         return audioContent
     }
 
@@ -411,53 +312,38 @@ class AudioGet private constructor(context: Context) {
      */
     fun searchMusic(audioTitle: String): ArrayList<AudioContent> {
         val audioContents = ArrayList<AudioContent>()
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(externalContentUri, projection,
-                                                    MediaStore.Audio.Media.TITLE + " like ? ", arrayOf("%$audioTitle%"), "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC")
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val audioContent = AudioContent()
-                    val songName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = songName
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    val contentUri = Uri.withAppendedPath(externalContentUri, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val albumName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artistName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName
-                    audioContents.add(audioContent)
-                } while (cursor!!.moveToNext())
-            }
-            cursor!!.close()
+
+        cursor = audioContext.contentResolver.query(
+            externalContentUri,
+            audioProjection,
+            MediaStore.Audio.Media.TITLE + " like ? ",
+            arrayOf("%$audioTitle%"),
+            "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC"
+        )
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                val audioContent = AudioContent()
+
+                audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), audioContent.albumId.toString()).toString()
+                audioContent.fileStringUri = Uri.withAppendedPath(externalContentUri, audioContent.musicID.toString()).toString()
+                audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+
+                audioContents.add(audioContent)
+            } while (cursor!!.moveToNext())
         }
+
+        cursor!!.close()
         return audioContents
     }
 
@@ -466,53 +352,37 @@ class AudioGet private constructor(context: Context) {
      */
     fun searchAlbum(albumName: String): ArrayList<AudioContent> {
         val audioContents = ArrayList<AudioContent>()
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.AudioColumns.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.AudioColumns.ALBUM, MediaStore.Audio.AudioColumns.TITLE,
-                                                             MediaStore.Audio.AudioColumns.DURATION, MediaStore.Audio.ArtistColumns.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(externalContentUri, projection,
-                                                    MediaStore.Audio.Media.ALBUM + " like ? ", arrayOf("%$albumName%"), "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC")
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val audioContent = AudioContent()
-                    val song_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = song_name
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val contentUri = Uri.withAppendedPath(externalContentUri, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val albumName1 = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName1
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artistName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName
-                    audioContents.add(audioContent)
-                } while (cursor!!.moveToNext())
-            }
-            cursor!!.close()
+
+        cursor = audioContext.contentResolver.query(
+            externalContentUri,
+            audioProjection,
+            MediaStore.Audio.Media.ALBUM + " like ? ",
+            arrayOf("%$albumName%"),
+            "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC"
+        )
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                val audioContent = AudioContent()
+
+                audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), audioContent.albumId.toString()).toString()
+                audioContent.fileStringUri = Uri.withAppendedPath(externalContentUri, audioContent.musicID.toString()).toString()
+                audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+
+                audioContents.add(audioContent)
+            } while (cursor!!.moveToNext())
         }
+        cursor!!.close()
         return audioContents
     }
 
@@ -521,61 +391,72 @@ class AudioGet private constructor(context: Context) {
      */
     fun searchArtist(artistName: String): ArrayList<AudioContent> {
         val audioContents = ArrayList<AudioContent>()
-        @SuppressLint("InlinedApi") val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE,
-                                                             MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ARTIST_ID)
-        cursor = audioContext.contentResolver.query(externalContentUri, projection,
-                                                    MediaStore.Audio.Media.ARTIST + " like ? ", arrayOf("%$artistName%"), "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC")
-        if (cursor != null) {
-            if (cursor!!.moveToFirst()) {
-                do {
-                    val audioContent = AudioContent()
-                    val song_name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    audioContent.name = song_name
-                    val songTitle = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                    audioContent.title = songTitle
-                    val id = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
-                    audioContent.musicID = id
-                    val contentUri = Uri.withAppendedPath(externalContentUri, id.toString())
-                    audioContent.fileStringUri = contentUri.toString()
-                    try {
-                        audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateAdded = 0
-                    }
-                    try {
-                        audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                        audioContent.dateModified = 0
-                    }
-                    val path = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    audioContent.filePath = path
-                    val audio = File(path)
-                    audioContent.musicSize = audio.length()
-                    val albumName = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                    audioContent.album = albumName
-                    @SuppressLint("InlinedApi") val dur = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-                    audioContent.duration = dur
-                    val albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                    val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
-                    val imageUri = Uri.withAppendedPath(sArtworkUri, albumId.toString())
-                    audioContent.artUri = imageUri.toString()
-                    val artistName1 = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    audioContent.artist = artistName1
-                    audioContents.add(audioContent)
-                } while (cursor!!.moveToNext())
-            }
-            cursor!!.close()
+
+        cursor = audioContext.contentResolver.query(
+            externalContentUri,
+            audioProjection,
+            MediaStore.Audio.Media.ARTIST + " like ? ",
+            arrayOf("%$artistName%"),
+            "LOWER (" + MediaStore.Audio.Media.TITLE + ") ASC"
+        )
+
+        if (cursor != null && cursor!!.moveToFirst()) {
+            do {
+                val audioContent = AudioContent()
+
+                audioContent.albumId = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                audioContent.name = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
+                audioContent.title = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                audioContent.musicID = cursor!!.getLong(cursor!!.getColumnIndex(MediaStore.Audio.Media._ID))
+                audioContent.duration = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                audioContent.album = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                audioContent.artUri = Uri.withAppendedPath(Uri.parse("content://media/external/audio/albumart"), audioContent.albumId.toString()).toString()
+                audioContent.fileStringUri = Uri.withAppendedPath(externalContentUri, audioContent.musicID.toString()).toString()
+                audioContent.dateAdded = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
+                audioContent.dateModified = cursor!!.getLong(cursor!!.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED))
+                audioContent.filePath = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.DATA))
+                audioContent.musicSize = cursor!!.getInt(cursor!!.getColumnIndex(MediaStore.Audio.Media.SIZE))
+                audioContent.artist = cursor!!.getString(cursor!!.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+
+                audioContents.add(audioContent)
+            } while (cursor!!.moveToNext())
         }
+
+        cursor!!.close()
         return audioContents
     }
 
     companion object {
+        val audioProjection = arrayOf(
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.SIZE,
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.DATE_MODIFIED,
+            MediaStore.Audio.Media.DATE_TAKEN,
+            MediaStore.Audio.Media.MIME_TYPE,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.YEAR
+        )
+
+        val genresProjection = arrayOf(
+            MediaStore.Audio.Genres.NAME,
+            MediaStore.Audio.Genres._ID
+        )
+
         private var audioGet: AudioGet? = null
+        const val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
         val externalContentUri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val internalContentUri: Uri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI
         private var cursor: Cursor? = null
+        private var genresCursor: Cursor? = null
         fun getInstance(context: Context): AudioGet? {
             if (audioGet == null) {
                 audioGet = AudioGet(context)

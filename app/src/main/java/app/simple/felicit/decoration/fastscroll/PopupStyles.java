@@ -33,7 +33,6 @@ public class PopupStyles {
         popupView.setGravity(Gravity.CENTER);
         popupView.setIncludeFontPadding(false);
         popupView.setSingleLine(true);
-        popupView.setTypeface(ResourcesCompat.getFont(context, R.font.bold));
         popupView.setTextColor(ContextCompat.getColor(context, R.color.fast_scroller_text));
         popupView.setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.fs_popup_text_size));
     };

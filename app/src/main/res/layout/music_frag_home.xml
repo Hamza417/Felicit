@@ -34,7 +34,7 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="@dimen/horizontal_list_item_margin"
                     android:paddingTop="@dimen/horizontal_list_item_margin"
-                    android:fontFamily="@font/bold"
+                    android:textStyle="bold"
                     android:text="Library"
                     android:textColor="@color/textPrimary"
                     android:textSize="10pt" />
@@ -53,7 +53,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/horizontal_list_item_margin"
                     android:layout_marginTop="@dimen/horizontal_list_item_margin"
-                    android:fontFamily="@font/bold"
+                    android:textStyle="bold"
                     android:text="Suggestions"
                     android:textColor="@color/textPrimary"
                     android:textSize="10pt" />

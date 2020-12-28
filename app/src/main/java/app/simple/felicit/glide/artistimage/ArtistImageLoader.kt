@@ -14,17 +14,17 @@ import okhttp3.OkHttpClient
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
 
-class ArtistImageLoader(private val context: Context, private val deezerApiService: DeezerRestService, private val okhttp: OkHttpClient) : ModelLoader<ArtistImage, InputStream> {
+class ArtistImageLoader(private val deezerApiService: DeezerRestService, private val okhttp: OkHttpClient) : ModelLoader<ArtistImage, InputStream> {
     override fun buildLoadData(model: ArtistImage, width: Int, height: Int,
                                options: Options): LoadData<InputStream> {
-        return LoadData(ObjectKey(model.artistName), ArtistImageFetcher(context, deezerApiService, okhttp, model))
+        return LoadData(ObjectKey(model.artistName), ArtistImageFetcher(deezerApiService, okhttp, model))
     }
 
     override fun handles(model: ArtistImage): Boolean {
         return true
     }
 
-    class Factory(private val context: Context) : ModelLoaderFactory<ArtistImage, InputStream> {
+    class Factory(context: Context) : ModelLoaderFactory<ArtistImage, InputStream> {
         private val deezerApiClient: DeezerRestService = invoke(
             createDefaultOkHttpClient(context)
                 .connectTimeout(TIMEOUT.toLong(), TimeUnit.MILLISECONDS)
@@ -39,7 +39,7 @@ class ArtistImageLoader(private val context: Context, private val deezerApiServi
             .build()
 
         override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<ArtistImage, InputStream> {
-            return ArtistImageLoader(context, deezerApiClient, okHttp)
+            return ArtistImageLoader(deezerApiClient, okHttp)
         }
 
         override fun teardown() {}

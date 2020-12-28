@@ -19,6 +19,7 @@ import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
 import java.io.InputStream
@@ -37,8 +38,7 @@ class AudioCoverModule : AppGlideModule() {
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .fallback(R.drawable.ic_icon)
                 .error(R.drawable.ic_icon)
-                .dontTransform()
-                .transform(BitmapAdjustments(context))
+                .transform(BitmapAdjustments())
         )
     }
 

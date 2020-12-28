@@ -12,12 +12,12 @@ import androidx.recyclerview.widget.RecyclerView
 import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.VerticalListViewHolder
 import app.simple.felicit.decoration.fastscroll.PopupTextProvider
+import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
 import app.simple.felicit.glide.modules.GlideApp
-import app.simple.felicit.glide.modules.loadFromUri
 import app.simple.felicit.interfaces.adapters.SongAdapterCallbacks
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
-import app.simple.felicit.util.getFileExtension
-import app.simple.felicit.util.getFormattedTime
+import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.util.TimeFormat.getFormattedTime
+import app.simple.felicit.util.UriHelper.getFileExtension
 
 class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextProvider {
 
@@ -28,10 +28,10 @@ class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextP
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_ITEM -> {
-                ListHolder(LayoutInflater.from(parent.context).inflate(R.layout.adapter_music_songs, parent, false))
+                ListHolder(LayoutInflater.from(parent.context).inflate(R.layout.adapter_list_songs, parent, false))
             }
             TYPE_HEADER -> {
-                HeaderHolder(LayoutInflater.from(parent.context).inflate(R.layout.song_header, parent, false))
+                HeaderHolder(LayoutInflater.from(parent.context).inflate(R.layout.header_song, parent, false))
             }
             else -> {
                 throw RuntimeException("there is no type that matches the type $viewType + make sure your using types correctly")
@@ -60,12 +60,12 @@ class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextP
             }
 
             holder.menu.setOnClickListener {
-                /* no-op */
+                songAdapterCallbacks.onOptionsPressed(songs[position])
             }
         }
 
         if (holder is HeaderHolder) {
-            holder.total.text = "${songs.size} Songs"
+            holder.total.text = "${songs.size} SONGS"
         }
     }
 
@@ -88,13 +88,13 @@ class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextP
         GlideApp.get(holder.itemView.context).clearMemory()
     }
 
-    class HeaderHolder(itemView: View) : VerticalListViewHolder(itemView) {
+    inner class HeaderHolder(itemView: View) : VerticalListViewHolder(itemView) {
         val total: TextView = itemView.findViewById(R.id.adapter_songs_total_count)
         val shuffle: ImageButton = itemView.findViewById(R.id.adapter_songs_shuffle)
         val menu: ImageButton = itemView.findViewById(R.id.adapter_songs_main_menu)
     }
 
-    class ListHolder(itemView: View) : VerticalListViewHolder(itemView) {
+    inner class ListHolder(itemView: View) : VerticalListViewHolder(itemView) {
         val layout: LinearLayout = itemView.findViewById(R.id.song_adapter_layout)
         val title: TextView = itemView.findViewById(R.id.song_adapter_title)
         val artist: TextView = itemView.findViewById(R.id.song_adapter_artist)
@@ -104,7 +104,7 @@ class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextP
     }
 
     companion object {
-        private const val TYPE_HEADER = 0
-        private const val TYPE_ITEM = 1
+        const val TYPE_HEADER = 0
+        const val TYPE_ITEM = 1
     }
 }

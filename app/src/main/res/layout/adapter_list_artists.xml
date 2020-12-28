@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="180dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:padding="5dp"
+    android:id="@+id/adapter_artist_layout"
     tools:ignore="UseCompoundDrawables">
 
-    <ImageView
+    <app.simple.felicit.decoration.views.SquareImageView
         android:id="@+id/adapter_artist_art"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         tools:ignore="ContentDescription" />
 
     <TextView
@@ -19,8 +21,8 @@
         android:layout_marginHorizontal="5dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        android:fontFamily="@font/bold"
-        android:maxLines="1"
+        android:textStyle="bold"
+        android:maxLines="2"
         android:padding="3dp"
         android:textColor="@color/textPrimary"
         android:textSize="5pt" />

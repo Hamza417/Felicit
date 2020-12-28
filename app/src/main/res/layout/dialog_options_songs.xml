@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/options_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog">
+
+    <LinearLayout
+        android:id="@+id/options_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <ImageView
+                android:id="@+id/options_art"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:transitionName="image_options" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/song_title_options"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="6pt" />
+
+                <TextView
+                    android:id="@+id/song_artist_options"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="5pt" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/options_close_songs"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical|end"
+                android:background="@drawable/ripple_btn"
+                android:src="@drawable/ic_cross"
+                android:tint="@color/iconSecondary"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/dividerColor" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="350dp">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior=".decoration.behaviors.OverScrollBehavior">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="10dp">
+
+                    <LinearLayout
+                        android:id="@+id/play_next_options"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_queue_play_next"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Play Next"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/song_options_add_to_queue"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_queue_music"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Add to queue"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/add_to_playlist"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_playlist_add"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Add to playlist"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/options_favorite_songs"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:id="@+id/options_heart_songs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_heart_default"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:id="@+id/options_favorite_text_songs"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Add to favorites"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1px"
+                        android:background="@color/dividerColor" />
+
+                    <LinearLayout
+                        android:id="@+id/sub_category_container_one"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/go_to_album"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/ripple"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="20dp"
+                                android:src="@drawable/ic_album"
+                                app:tint="@color/iconSecondary" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:text="Album"
+                                android:textColor="@color/textPrimary"
+                                android:textSize="6pt" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/go_to_artist"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/options_item_height"
+                            android:layout_weight="1"
+                            android:background="@drawable/ripple"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="20dp"
+                                android:src="@drawable/ic_person"
+                                app:tint="@color/iconSecondary" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:text="Artist"
+                                android:textColor="@color/textPrimary"
+                                android:textSize="6pt" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/sub_category_container_two"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/go_to_genre"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/ripple"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="20dp"
+                                android:src="@drawable/ic_genre"
+                                app:tint="@color/iconSecondary" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:text="Genre"
+                                android:textColor="@color/textPrimary"
+                                android:textSize="6pt" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/go_to_folder"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/options_item_height"
+                            android:layout_weight="1"
+                            android:background="@drawable/ripple"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="20dp"
+                                android:src="@drawable/ic_folder"
+                                app:tint="@color/iconSecondary" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:text="Folder"
+                                android:textColor="@color/textPrimary"
+                                android:textSize="6pt" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1px"
+                        android:background="@color/dividerColor" />
+
+                    <LinearLayout
+                        android:id="@+id/share_option_songs"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_share"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:id="@+id/share_option_songs_options"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Share"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/go_to_youtube"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_youtube"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Search on Youtube"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/options_ringtone_songs"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:id="@+id/options_ringtone_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_ring_volume" />
+
+                        <TextView
+                            android:id="@+id/options_ringtone_text_songs"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Set as ringtone"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1px"
+                        android:background="@color/dividerColor" />
+
+                    <LinearLayout
+                        android:id="@+id/file_information"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_file_text"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="File information"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/options_item_height"
+                        android:background="@drawable/ripple"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="20dp"
+                            android:src="@drawable/ic_edit"
+                            app:tint="@color/iconSecondary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:text="Edit metadata"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="6pt" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
+</FrameLayout>

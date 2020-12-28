@@ -2,12 +2,12 @@
 <resources>
     <!-- App Colors -->
     <color name="appAccent">#002B4C</color>
-    <color name="mainBackground">#1B1B1B</color>
+    <color name="mainBackground">#1B1C1E</color>
     <color name="iconPrimary">#FFFFFF</color>
     <color name="iconSecondary">#FFFFFF</color>
-    <color name="iconDisabled">#7C7C7C</color>
+    <color name="iconDisabled">#BDBDBD</color>
     <color name="textPrimary">@color/iconPrimary</color>
-    <color name="textSecondary">#5C5C5C</color>
+    <color name="textSecondary">#F6F6F6</color>
     <color name="textSelected">@color/appAccent</color>
     <color name="dividerColor">#AAAAAA</color>
     <color name="rippleColor">#656565</color>
@@ -15,10 +15,10 @@
     <color name="gradientEndColor">@color/mainBackground</color>
 
     // Fast Scroller
-    <color name="fast_scroller_bg">#FFFFFF</color>
+    <color name="fast_scroller_bg">@color/iconPrimary</color>
     <color name="fast_scroller_pressed">#f0f0f0</color>
     <color name="fast_scroller_stroke">#2E2E2E</color>
-    <color name="fast_scroller_text">@color/textPrimary</color>
+    <color name="fast_scroller_text">@color/mainBackground</color>
     <color name="fast_scroller_arrows">#000000</color>
 
     // Icon Gradient

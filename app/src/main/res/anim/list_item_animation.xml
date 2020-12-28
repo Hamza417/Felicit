@@ -7,6 +7,14 @@
         android:fromYDelta="100%"
         android:toYDelta="0" />
 
+    <scale
+        android:fromXScale=".8"
+        android:fromYScale=".8"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:toXScale="1"
+        android:toYScale="1" />
+
     <alpha
         android:fromAlpha="0"
         android:toAlpha="1" />

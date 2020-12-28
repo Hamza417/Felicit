@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -70,10 +71,9 @@ class LauncherActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val list = MediaLoader.withAudioContext(applicationContext)?.getAllAudioContent(AudioGet.externalContentUri)
             val db = Room.databaseBuilder(applicationContext, SongDatabase::class.java, "all_songs.db").build()
-
-            if (list != null) {
-                db.songDao()?.insertSong(list)
-            }
+            db.songDao()?.nukeTable()
+            if (list != null && list.size > 0) db.songDao()?.insertSong(list)
+            db.close()
 
             withContext(Dispatchers.Main) {
                 val intent = Intent(this@LauncherActivity, MainActivity::class.java)

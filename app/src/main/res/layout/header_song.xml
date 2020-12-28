@@ -8,11 +8,15 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:paddingVertical="60dp"
         android:orientation="horizontal">
 
         <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:adjustViewBounds="true"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="10dp"
             android:background="@drawable/ic_music_note"
@@ -23,10 +27,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/light"
             android:text="All Songs"
+            android:layout_gravity="center_vertical"
             android:textColor="@color/textPrimary"
             android:textSize="18pt"
+            android:fontFamily="@font/light"
             android:transitionName="all_songs_text" />
 
     </LinearLayout>
@@ -34,6 +39,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:orientation="horizontal">
 
         <TextView
@@ -42,10 +48,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:fontFamily="@font/medium"
             android:text="Total Songs"
             android:textColor="@color/textSecondary"
-            android:textSize="6pt" />
+            android:textSize="6pt"
+            android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/adapter_songs_shuffle"

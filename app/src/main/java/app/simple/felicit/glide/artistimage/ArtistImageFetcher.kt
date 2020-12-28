@@ -1,6 +1,5 @@
 package app.simple.felicit.glide.artistimage
 
-import android.content.Context
 import app.simple.felicit.network.deezer.DeezerResponse
 import app.simple.felicit.network.deezer.DeezerRestService
 import com.bumptech.glide.Priority
@@ -14,7 +13,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.InputStream
 
-class ArtistImageFetcher internal constructor(private val context: Context, private val deezerApiService: DeezerRestService, private val okhttp: OkHttpClient, private val model: ArtistImage) : DataFetcher<InputStream> {
+class ArtistImageFetcher internal constructor(private val deezerApiService: DeezerRestService, private val okhttp: OkHttpClient, private val model: ArtistImage) : DataFetcher<InputStream> {
     @Volatile
     private var isCancelled = false
     private var call: Call<DeezerResponse>? = null

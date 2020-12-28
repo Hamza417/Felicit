@@ -8,8 +8,8 @@
     <!-- App Colors -->
     <color name="appAccent">#0090FF</color>
     <color name="mainBackground">#FFFFFF</color>
-    <color name="iconPrimary">#333333</color>
-    <color name="iconSecondary">#515151</color>
+    <color name="iconPrimary">#1B1C1E</color>
+    <color name="iconSecondary">#393939</color>
     <color name="iconDisabled">#515151</color>
     <color name="textPrimary">@color/iconPrimary</color>
     <color name="textSecondary">#5C5C5C</color>
@@ -20,10 +20,10 @@
     <color name="gradientEndColor">#FFFFFF</color>
 
     // Fast Scroller
-    <color name="fast_scroller_bg">#FFFFFF</color>
+    <color name="fast_scroller_bg">@color/iconPrimary</color>
     <color name="fast_scroller_pressed">#f0f0f0</color>
     <color name="fast_scroller_stroke">#2E2E2E</color>
-    <color name="fast_scroller_text">@color/textPrimary</color>
+    <color name="fast_scroller_text">@color/mainBackground</color>
     <color name="fast_scroller_arrows">#000000</color>
 
     // Icon Gradient

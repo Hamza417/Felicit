@@ -18,8 +18,9 @@ import androidx.core.app.NotificationCompat
 import app.simple.felicit.R
 import app.simple.felicit.activities.MainActivity
 import app.simple.felicit.loader.scanSongList
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
-import app.simple.felicit.util.getBitmapFromUriForNotifications
+import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.util.ImageHelper.getBitmapFromUriForNotifications
+import app.simple.felicit.util.IntentHelper.sendLocalBroadcastIntent
 import java.io.IOException
 import java.util.*
 import kotlin.math.ln
@@ -50,6 +51,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     private val floatVolumeMax = 1f
     private val floatVolumeMin = 0f
     private val notificationId = 2548
+    private var wasPlaying = true
 
     inner class MusicBinder : Binder() {
         val service: MusicService
@@ -76,7 +78,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
             actionPause -> pause()
             actionNext -> playNextSong()
             actionPrevious -> playPreviousSong()
-            actionStop -> onDestroy()
+            actionQuitService -> onDestroy()
         }
         return START_REDELIVER_INTENT
     }
@@ -87,6 +89,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         audioManager.abandonAudioFocus(this)
         mediaPlayer?.release()
         notificationManager?.cancel(notificationId)
+        sendLocalBroadcastIntent(actionQuitService, this)
         stopSelf()
     }
 
@@ -178,8 +181,8 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
                         if (mediaPlayer!!.isPlaying) {
                             mediaPlayer!!.pause()
                             showNotification(generateAction(R.drawable.ic_play, "Play", actionPlay))
-
                             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
+                            stopForeground(false)
                         }
                         timer!!.cancel()
                         timer!!.purge()
@@ -331,9 +334,15 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS -> pause()
-            AudioManager.AUDIOFOCUS_GAIN -> play()
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pause()
+            AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                wasPlaying = mediaPlayer!!.isPlaying
+                pause()
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (wasPlaying) {
+                    play()
+                }
+            }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> mediaPlayer!!.setVolume(0.2f, 0.2f)
         }
     }
@@ -361,14 +370,15 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     }
 
     private fun showNotification(action: NotificationCompat.Action) {
-        val channelId = "007" // The id of the channel.
+        val channelId = "007"
         var importance = 0
-        val name: CharSequence = "Felicit Music" // The user-visible name of the channel.
+        val name: CharSequence = "Felicit Music Player" // The user-visible name of the channel.
         notificationManager = baseContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             importance = NotificationManager.IMPORTANCE_LOW
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationChannel = NotificationChannel(channelId, name, importance)
             notificationManager!!.createNotificationChannel(notificationChannel!!)
@@ -384,11 +394,10 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         builder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_icon_notifications)
             .setLargeIcon(getBitmapFromUriForNotifications(baseContext, songs[songPosition].artUri))
-            .setOngoing(true)
             .addAction(generateAction(R.drawable.ic_prev, "Previous", actionPrevious))
             .addAction(action) /* Play Pause Action */
             .addAction(generateAction(R.drawable.ic_next, "Next", actionNext))
-            .addAction(generateAction(R.drawable.ic_cross, "Close", actionStop))
+            .addAction(generateAction(R.drawable.ic_cross, "Close", actionQuitService))
             .setContentTitle(songs[songPosition].title)
             .setContentText(songs[songPosition].artist)
             .setSubText(songs[songPosition].album)

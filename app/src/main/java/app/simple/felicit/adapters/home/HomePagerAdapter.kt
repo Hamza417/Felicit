@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.HorizontalListViewHolder
-import app.simple.felicit.glide.modules.loadFromPath
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
+import app.simple.felicit.glide.modules.AudioCoverPagers.loadCoverForPagerFromFile
+import app.simple.felicit.medialoader.mediamodels.AudioContent
 
 class HomePagerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -21,7 +21,7 @@ class HomePagerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is Holder) {
-            holder.albumArt.loadFromPath(holder.itemView.context, songs[position].filePath)
+            holder.albumArt.loadCoverForPagerFromFile(songs[position].filePath)
             holder.title.text = songs[position].title
             holder.artist.text = songs[position].artist
         }

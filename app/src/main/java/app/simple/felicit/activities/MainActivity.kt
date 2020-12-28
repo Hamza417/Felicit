@@ -1,18 +1,18 @@
 package app.simple.felicit.activities
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.Bundle
 import android.os.IBinder
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import app.simple.felicit.R
 import app.simple.felicit.interfaces.fragments.SongsFragmentCallbacks
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
+import app.simple.felicit.medialoader.mediamodels.AudioContent
 import app.simple.felicit.services.MusicService
-import app.simple.felicit.ui.library.AllSongs
+import app.simple.felicit.services.actionQuitService
+import app.simple.felicit.ui.dialogs.option.SongOptions
 import app.simple.felicit.ui.library.Home
 
 class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
     private var isServiceBound: Boolean = false
     private var musicService: MusicService? = null
     private lateinit var serviceConnection: ServiceConnection
+    private lateinit var localBroadcastReceiver: BroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +28,13 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val home = supportFragmentManager.findFragmentByTag("home")
+        val home: Fragment?
+
+        home = if(savedInstanceState != null) {
+            supportFragmentManager.getFragment(savedInstanceState, "home")
+        } else {
+            supportFragmentManager.findFragmentByTag("home")
+        }
 
         if (home == null) {
             supportFragmentManager.beginTransaction()
@@ -38,18 +45,29 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
                 .replace(R.id.fragment_navigator, home, "home")
                 .commit()
         }
+
+        initService()
+
+        localBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == actionQuitService) {
+                    finishAffinity()
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        supportFragmentManager.putFragment(outState, "home", supportFragmentManager.findFragmentByTag("home")!!)
     }
 
     /**
      * TODO - improve service implementation
      */
-    private fun initService(songs: MutableList<AudioContent>, position: Int, id: Int?) {
+    private fun initService() {
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(Intent(applicationContext, MusicService::class.java))
-        } else {
-            startService(Intent(applicationContext, MusicService::class.java))
-        }
+        startService(Intent(applicationContext, MusicService::class.java))
 
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -59,7 +77,6 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
 
                 if (musicService != null) {
                     isServiceBound = true
-                    onSongClicked(songs, position, id)
                 }
             }
 
@@ -69,11 +86,17 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
         bind()
     }
 
+    override fun onStart() {
+        super.onStart()
+        LocalBroadcastManager.getInstance(this).registerReceiver(localBroadcastReceiver, IntentFilter(actionQuitService))
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         if (isServiceBound) {
             applicationContext.unbindService(serviceConnection)
         }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(localBroadcastReceiver)
     }
 
     private fun bind() {
@@ -86,7 +109,11 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
             musicService?.songPosition = position
             musicService?.initMediaPlayer()
         } else {
-            initService(songs, position, id)
+            initService()
         }
+    }
+
+    override fun onOptionsPressed(song: AudioContent) {
+        SongOptions().newInstance(song, SongOptions.Companion.Source.APP.source).show(supportFragmentManager, "song_options")
     }
 }

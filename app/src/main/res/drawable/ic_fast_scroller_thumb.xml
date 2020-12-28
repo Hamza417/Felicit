@@ -1,17 +1,18 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="60dp"
-    android:height="60dp"
-    android:viewportWidth="512"
-    android:viewportHeight="512">
-  <path
-      android:pathData="M256.5,256.5m-168.5,0a168.5,168.5 0,1 1,337 0a168.5,168.5 0,1 1,-337 0"
-      android:strokeWidth="1"
-      android:fillColor="@color/fast_scroller_bg"
-      android:strokeColor="@color/fast_scroller_stroke" />
-  <path
-      android:fillColor="@color/fast_scroller_arrows"
-      android:pathData="M255.5,205L290,241.656H221Z" />
-  <path
-      android:fillColor="@color/fast_scroller_arrows"
-      android:pathData="M255.5,307L290,270.344H221Z" />
+    android:width="32.8dp"
+    android:height="65.6dp"
+    android:viewportWidth="224"
+    android:viewportHeight="448">
+    <path
+        android:fillColor="@color/fast_scroller_bg"
+        android:fillType="evenOdd"
+        android:pathData="M224,432C109.125,432 16,338.875 16,224S109.125,16 224,16" />
+    <path
+        android:fillColor="@color/mainBackground"
+        android:fillType="evenOdd"
+        android:pathData="M129.5,173L164,209.656H95Z" />
+    <path
+        android:fillColor="@color/mainBackground"
+        android:fillType="evenOdd"
+        android:pathData="M129.5,275L164,238.344H95Z" />
 </vector>

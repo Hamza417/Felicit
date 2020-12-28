@@ -17,14 +17,11 @@ import app.simple.felicit.adapters.home.RandomPicksAdapter
 import app.simple.felicit.database.SongDatabase
 import app.simple.felicit.decoration.itemdecorator.HorizontalMarginItemDecoration
 import app.simple.felicit.interfaces.adapters.Library
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
+import app.simple.felicit.medialoader.mediamodels.AudioContent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.stream.Collectors
-import java.util.stream.Stream
-import kotlin.random.Random
 
 class Home : Fragment(), Library {
 
@@ -43,6 +40,7 @@ class Home : Fragment(), Library {
     private lateinit var libraryIcons: RecyclerView
     private lateinit var randomPicksAdapter: RandomPicksAdapter
     private lateinit var homePagerAdapter: HomePagerAdapter
+    private var fragment: Fragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,26 +93,12 @@ class Home : Fragment(), Library {
                 val freshList = db.songDao()?.getSongLinearList()
 
                 songs = freshList!! as ArrayList<AudioContent>
-                artists = db.songDao()?.getArtistsLinearList() as ArrayList<AudioContent>
+                artists = db.songDao()?.getArtistList() as ArrayList<AudioContent>
 
                 val database = Room.databaseBuilder(context, SongDatabase::class.java, "random_songs.db").build()
 
-                val mutedList: MutableList<AudioContent> = database.randomDao()!!.getList()
-
-                println(mutedList.size)
-
-                if (mutedList.size <= 0) {
-                    val value = Stream.generate { Random.nextInt(freshList.size) }.distinct().limit(20L).collect(Collectors.toList())
-
-                    for (i in value.indices) {
-                        mutedList.add(freshList[value[i]])
-                    }
-
-                    database.randomDao()?.insertSong(mutedList)
-                }
-
-                randomPicksAdapter.songs = mutedList
-                homePagerAdapter.songs = mutedList
+                randomPicksAdapter.songs = db.songDao()?.getSongRandomList()!!
+                homePagerAdapter.songs = db.songDao()?.getSongRandomList()!!
 
                 db.close()
                 database.close()
@@ -132,28 +116,26 @@ class Home : Fragment(), Library {
     override fun onLibraryIconClicked(id: Int) {
         when (id) {
             0 -> {
+                fragment = requireFragmentManager().findFragmentByTag("songs")
+
+                if (fragment == null) fragment = AllSongs().newInstance(songs)
+
                 requireFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out)
-                    .replace(R.id.fragment_navigator, AllSongs().newInstance(songs), "songs")
+                    .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out, R.anim.dialog_in, R.anim.dialog_out)
+                    .replace(R.id.fragment_navigator, fragment!!, "songs")
                     .addToBackStack(tag)
                     .commit()
             }
             1 -> {
-                val frag = requireFragmentManager().findFragmentByTag("artists")
+                fragment = requireFragmentManager().findFragmentByTag("artists")
 
-                if (frag != null) {
-                    requireFragmentManager().beginTransaction()
-                        .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out)
-                        .replace(R.id.fragment_navigator, frag, "artists")
-                        .addToBackStack(tag)
-                        .commit()
-                } else {
-                    requireFragmentManager().beginTransaction()
-                        .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out)
-                        .replace(R.id.fragment_navigator, Artists().newInstance(artists), "artists")
-                        .addToBackStack(tag)
-                        .commit()
-                }
+                if (fragment == null) fragment = Artists().newInstance(artists)
+
+                requireFragmentManager().beginTransaction()
+                    .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out, R.anim.dialog_in, R.anim.dialog_out)
+                    .replace(R.id.fragment_navigator, fragment!!, "artists")
+                    .addToBackStack(tag)
+                    .commit()
             }
             2 -> {
             }

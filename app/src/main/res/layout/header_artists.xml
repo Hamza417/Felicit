@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingVertical="60dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/ic_person"
+            android:scaleType="centerInside"
+            android:transitionName="all_songs_header"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artists"
+            android:textColor="@color/textPrimary"
+            android:textSize="18pt"
+            android:textStyle="normal"
+            android:transitionName="all_songs_text" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="5dp">
+
+        <TextView
+            android:id="@+id/adapter_artists_total_count"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:text="Total Songs"
+            android:textColor="@color/textSecondary"
+            android:textSize="6pt" />
+
+        <ImageButton
+            android:id="@+id/adapter_artists_main_menu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:background="@drawable/ripple"
+            android:src="@drawable/ic_menu_open"
+            android:tint="@color/iconSecondary" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

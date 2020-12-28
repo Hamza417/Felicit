@@ -14,7 +14,7 @@ import app.simple.felicit.decoration.itemdecorator.VerticalMarginItemDecoration
 import app.simple.felicit.decoration.views.CustomRecyclerView
 import app.simple.felicit.interfaces.adapters.SongAdapterCallbacks
 import app.simple.felicit.interfaces.fragments.SongsFragmentCallbacks
-import app.simple.felicit.medialoader.mediaHolders.AudioContent
+import app.simple.felicit.medialoader.mediamodels.AudioContent
 import kotlinx.coroutines.*
 
 class AllSongs : Fragment(), SongAdapterCallbacks {
@@ -49,7 +49,7 @@ class AllSongs : Fragment(), SongAdapterCallbacks {
 
         songsAdapter = SongsAdapter()
         songsAdapter.songAdapterCallbacks = this@AllSongs
-        if(arguments != null) songsAdapter.songs = arguments!!.getParcelableArrayList("all_songs")!!
+        if (arguments != null) songsAdapter.songs = arguments!!.getParcelableArrayList("all_songs")!!
 
         songsRecyclerView.adapter = songsAdapter
         songsRecyclerView.scheduleLayoutAnimation()
@@ -65,5 +65,9 @@ class AllSongs : Fragment(), SongAdapterCallbacks {
 
     override fun onSongClicked(songs: MutableList<AudioContent>, position: Int, id: Int?) {
         (requireActivity() as SongsFragmentCallbacks).onSongClicked(songs, position, id)
+    }
+
+    override fun onOptionsPressed(song: AudioContent) {
+        (requireActivity() as SongsFragmentCallbacks).onOptionsPressed(song)
     }
 }

@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
@@ -34,7 +35,7 @@ class LibraryIcons(private val library: Library) : RecyclerView.Adapter<Recycler
     inner class Holder(itemView: View) : HorizontalListViewHolder(itemView) {
         val icon: ImageView = itemView.findViewById(R.id.adapter_library_icon)
         val category: TextView = itemView.findViewById(R.id.adapter_library_category)
-        val layout: ConstraintLayout = itemView.findViewById(R.id.adapter_library_layout)
+        val layout: LinearLayout = itemView.findViewById(R.id.adapter_library_layout)
     }
 
     companion object {

@@ -1,8 +1,7 @@
 package app.simple.felicit.glide.transformation
 
-import android.content.Context
 import android.graphics.Bitmap
-import app.simple.felicit.util.getRoundedCornerBitmap
+import app.simple.felicit.util.ImageHelper.getRoundedCornerBitmap
 
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
@@ -10,9 +9,9 @@ import java.nio.charset.Charset
 import java.security.MessageDigest
 
 
-class BitmapAdjustments(private val context: Context) : BitmapTransformation() {
+class BitmapAdjustments : BitmapTransformation() {
     public override fun transform(pool: BitmapPool, bitmapToTransform: Bitmap, outWidth: Int, outHeight: Int): Bitmap {
-        return getRoundedCornerBitmap(bitmapToTransform, 0.2f)
+        return getRoundedCornerBitmap(bitmapToTransform, 0.2f, 10)
     }
 
     override fun equals(other: Any?): Boolean {
