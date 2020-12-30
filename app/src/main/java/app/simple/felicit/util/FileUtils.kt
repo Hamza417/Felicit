@@ -1,5 +1,13 @@
 package app.simple.felicit.util
 
+import android.content.Context
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Looper
+import app.simple.felicit.exceptions.NotABackgroundThreadException
+import java.io.IOException
 import java.text.DecimalFormat
 
 object FileUtils {

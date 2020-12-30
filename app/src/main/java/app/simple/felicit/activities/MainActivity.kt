@@ -5,20 +5,24 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import app.simple.felicit.R
+import app.simple.felicit.interfaces.fragments.FragmentNavigator
 import app.simple.felicit.interfaces.fragments.SongsFragmentCallbacks
 import app.simple.felicit.medialoader.mediamodels.AudioContent
 import app.simple.felicit.services.MusicService
 import app.simple.felicit.services.actionQuitService
 import app.simple.felicit.ui.dialogs.option.SongOptions
+import app.simple.felicit.ui.library.AllSongs
+import app.simple.felicit.ui.library.Artists
 import app.simple.felicit.ui.library.Home
+import com.fragula.Navigator
 
-class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
+class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNavigator {
 
     private var isServiceBound: Boolean = false
     private var musicService: MusicService? = null
+    private lateinit var navigator: Navigator
     private lateinit var serviceConnection: ServiceConnection
     private lateinit var localBroadcastReceiver: BroadcastReceiver
 
@@ -28,23 +32,8 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val home: Fragment?
-
-        home = if(savedInstanceState != null) {
-            supportFragmentManager.getFragment(savedInstanceState, "home")
-        } else {
-            supportFragmentManager.findFragmentByTag("home")
-        }
-
-        if (home == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_navigator, Home().newInstance(), "home")
-                .commit()
-        } else {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_navigator, home, "home")
-                .commit()
-        }
+        navigator = findViewById(R.id.fragment_navigator)
+        navigator.addFragment(Home())
 
         initService()
 
@@ -55,11 +44,6 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
                 }
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        supportFragmentManager.putFragment(outState, "home", supportFragmentManager.findFragmentByTag("home")!!)
     }
 
     /**
@@ -99,6 +83,14 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(localBroadcastReceiver)
     }
 
+    override fun onBackPressed() {
+        if (navigator.fragmentCount > 1) {
+            navigator.goToPreviousFragmentAndRemoveLast()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     private fun bind() {
         applicationContext.bindService(Intent(applicationContext, MusicService::class.java), serviceConnection, Context.BIND_ABOVE_CLIENT)
     }
@@ -115,5 +107,20 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks {
 
     override fun onOptionsPressed(song: AudioContent) {
         SongOptions().newInstance(song, SongOptions.Companion.Source.APP.source).show(supportFragmentManager, "song_options")
+    }
+
+    override fun navigateTo(fragmentIndexValue: Int, audioContent: ArrayList<AudioContent>) {
+        when (fragmentIndexValue) {
+            0 -> {
+                navigator.addFragment(AllSongs()) {
+                    "all_songs" to audioContent
+                }
+            }
+            1 -> {
+                navigator.addFragment(Artists()) {
+                    "all_artists" to audioContent
+                }
+            }
+        }
     }
 }

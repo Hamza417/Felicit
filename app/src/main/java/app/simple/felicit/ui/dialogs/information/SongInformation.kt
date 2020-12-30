@@ -1,8 +1,6 @@
 package app.simple.felicit.ui.dialogs.information
 
 import android.content.Intent
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
@@ -10,21 +8,22 @@ import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import app.simple.felicit.R
 import app.simple.felicit.decoration.views.CustomBottomSheetDialog
 import app.simple.felicit.medialoader.mediamodels.AudioContent
-import app.simple.felicit.util.FileUtils
-import app.simple.felicit.util.TimeFormat.getFormattedTime
+import app.simple.felicit.util.AudioHelper.getSampling
+import app.simple.felicit.util.AudioHelper.toBitrate
+import app.simple.felicit.util.FileUtils.getFileSize
+import app.simple.felicit.util.NumberHelper.getFormattedTime
 import app.simple.felicit.util.UriHelper
+import app.simple.felicit.util.UriHelper.asUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
@@ -98,13 +97,12 @@ class SongInformation : CustomBottomSheetDialog() {
         artist.text = audioContent.artist
         album.text = audioContent.album
         year.text = audioContent.year.toString()
-        size.text = FileUtils.getFileSize(audioContent.musicSize.toDouble())
-        format.text = String.format(".%s", UriHelper.getFileExtension(requireContext(), Uri.parse(audioContent.fileStringUri)))
+        size.text = getFileSize(audioContent.musicSize.toDouble())
+        format.text = UriHelper.getFileExtension(requireContext(), audioContent.fileStringUri.asUri())
         path.text = audioContent.filePath
         addedOn.text = DateFormat.format("EEEE, dd MMMM yyyy, hh:mm a", Date(audioContent.dateAdded * 1000))
 
         getRawData()
-        getSampling()
 
         search.setOnClickListener {
             try {
@@ -141,10 +139,11 @@ class SongInformation : CustomBottomSheetDialog() {
 
             try {
                 val mediaMetadataRetriever = MediaMetadataRetriever()
-                mediaMetadataRetriever.setDataSource(requireContext(), Uri.parse(audioContent.fileStringUri))
+                mediaMetadataRetriever.setDataSource(requireContext(), audioContent.fileStringUri.asUri())
 
                 duration = getFormattedTime(audioContent.duration)
-                bitrate = "${mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt()!! / 1000} kbps"
+                println(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE))
+                bitrate = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toInt()!!.toBitrate()
 
                 try {
                     genre = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)!!
@@ -160,13 +159,13 @@ class SongInformation : CustomBottomSheetDialog() {
                 }
                 try {
                     albumArtist = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST)!!
-                } catch (e: NullPointerException) {
+                } catch (ignored: NullPointerException) {
                 }
                 try {
                     composer = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER)!!
                 } catch (ignored: NullPointerException) {
                 }
-                sample = getSampling()
+                sample = getSampling(requireContext(), audioContent.fileStringUri.asUri(), audioContent.filePath)
 
                 mediaMetadataRetriever.close()
             } catch (ignored: IllegalArgumentException) {
@@ -184,24 +183,5 @@ class SongInformation : CustomBottomSheetDialog() {
                 this@SongInformation.sampling.text = sample
             }
         }
-    }
-
-    private fun getSampling(): String {
-        val mex = MediaExtractor()
-        try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                mex.setDataSource(requireContext().contentResolver.openAssetFileDescriptor(Uri.parse(audioContent.fileStringUri), "r")!!)
-            } else {
-                mex.setDataSource(audioContent.filePath)
-            }
-            return "${mex.getTrackFormat(0).getInteger(MediaFormat.KEY_SAMPLE_RATE).toFloat() / 1000} kHz"
-        } catch (e: IOException) {
-        } catch (e: IllegalArgumentException) {
-        } catch (e: NullPointerException) {
-        } finally {
-            mex.release()
-        }
-
-        return ""
     }
 }

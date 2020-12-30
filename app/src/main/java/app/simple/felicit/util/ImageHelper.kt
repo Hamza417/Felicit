@@ -47,6 +47,7 @@ object ImageHelper {
      *
      * Use as <code>vectorResId.toBitmap(context)</code>
      */
+    @JvmStatic
     fun Int.toBitmap(context: Context): Bitmap? {
         val drawable = ContextCompat.getDrawable(context, this)
         val bitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
@@ -59,6 +60,8 @@ object ImageHelper {
     /**
      * @param bitmap takes the bitmap value and makes the corners rounded
      * by [bitmap] * 0.2f
+     *
+     * TODO - add shadow to bitmap
      */
     fun getRoundedCornerBitmap(bitmap: Bitmap, @FloatRange(from = 0.1, to = 0.5) radius: Float, padding: Int): Bitmap {
         val paddedWidth = 0.coerceAtLeast(bitmap.width - (padding * 2))

@@ -19,7 +19,7 @@ import android.telephony.TelephonyManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -32,8 +32,11 @@ import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
 import app.simple.felicit.medialoader.MediaLoader
 import app.simple.felicit.medialoader.mediamodels.AudioContent
 import app.simple.felicit.ui.dialogs.option.SongOptions
+import app.simple.felicit.util.AudioHelper.getBitrate
+import app.simple.felicit.util.AudioHelper.getSampling
 import app.simple.felicit.util.ImageHelper.getBitmapFromUri
-import app.simple.felicit.util.TimeFormat.getFormattedTime
+import app.simple.felicit.util.NumberHelper.getFormattedTime
+import app.simple.felicit.util.UriHelper.asUri
 import app.simple.felicit.util.UriHelper.getFileExtension
 import app.simple.felicit.util.UriHelper.getPathFromURI
 import com.google.android.material.card.MaterialCardView
@@ -95,7 +98,7 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         container = view.findViewById(R.id.mime_dialog)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
                 .setWillPauseWhenDucked(true)
                 .setOnAudioFocusChangeListener(this)
@@ -107,25 +110,33 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         callStateListener()
 
         container.setOnClickListener {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-                handler!!.removeCallbacks(update)
-                mimeImageView.animate()
-                    .alpha(0.6f)
-                    .setDuration(1500)
-                    .start()
-            } else {
-                handler!!.post(update)
-                mediaPlayer.start()
-                mimeImageView.animate()
-                    .alpha(1f)
-                    .setDuration(1500)
-                    .start()
+            if (!ongoingCall) {
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.pause()
+                    handler!!.removeCallbacks(update)
+                    removeAudioFocus()
+                    mimeImageView.animate()
+                        .alpha(0.6f)
+                        .setDuration(1500)
+                        .start()
+                } else if (!mediaPlayer.isPlaying && requestAudioFocus()) {
+                    handler!!.post(update)
+                    mediaPlayer.start()
+                    mimeImageView.animate()
+                        .alpha(1f)
+                        .setDuration(1500)
+                        .start()
+                }
             }
         }
 
         container.setOnLongClickListener {
-            audioContent?.let { it1 -> SongOptions().newInstance(it1, SongOptions.Companion.Source.MIME.source).show(childFragmentManager, "song_options") }
+            audioContent?.let { it1 ->
+                SongOptions().newInstance(
+                    it1,
+                    SongOptions.Companion.Source.MIME.source
+                ).show(childFragmentManager, "song_options")
+            }
             true
         }
 
@@ -179,7 +190,7 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
             audioManager = null
             handler!!.removeCallbacks(update)
             requireContext().unregisterReceiver(becomingNoisyReceiver)
-            if(childFragmentManager.backStackEntryCount > 1) {
+            if (childFragmentManager.backStackEntryCount > 1) {
                 childFragmentManager.popBackStackImmediate()
             }
             requireActivity().finishAfterTransition()
@@ -213,11 +224,15 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
 
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
-            AudioManager.AUDIOFOCUS_GAIN -> audioPlayer()
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (!mediaPlayer.isPlaying) {
+                    container.callOnClick()
+                }
+            }
             AudioManager.AUDIOFOCUS_LOSS ->
                 // Lost focus for an unbounded amount of time: stop playback and release media player
                 if (mediaPlayer.isPlaying) {
-                    dialog!!.dismiss()
+                    container.callOnClick()
                 }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ->
                 /*
@@ -240,7 +255,7 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
             value = audioManager!!.requestAudioFocus(focusRequest!!)
         } else {
             @Suppress("deprecation") // This one's deprecated, other one won't work
-            value = audioManager!!.requestAudioFocus(this, AudioManager.STREAM_MUSIC, mediaPlayer.duration)
+            value = audioManager!!.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
         }
 
         return value == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
@@ -277,14 +292,15 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
             override fun onCallStateChanged(state: Int, incomingNumber: String) {
                 when (state) {
                     TelephonyManager.CALL_STATE_OFFHOOK, TelephonyManager.CALL_STATE_RINGING -> {
-                        mediaPlayer.pause()
+                        if (mediaPlayer.isPlaying) {
+                            container.callOnClick()
+                        }
                         ongoingCall = true
                     }
                     TelephonyManager.CALL_STATE_IDLE -> {
-                        if (ongoingCall) {
-                            ongoingCall = false
-                            mediaPlayer.start()
-                        }
+                        ongoingCall = false
+                        /* no-op */
+                        // Wait for user action or dismiss
                     }
                 }
             }
@@ -298,36 +314,37 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
             audioContent = MediaLoader.withAudioContext(requireContext())!!.getMusicMetaData(getPathFromURI(requireContext(), songUri!!))
 
             val albumArtColor = try {
-                val p0 = getBitmapFromUri(requireContext(), Uri.parse(audioContent!!.artUri))?.let { Palette.from(it).generate() }
+                val p0 = getBitmapFromUri(requireContext(), audioContent!!.artUri.asUri())?.let { Palette.from(it).generate() }
                 p0!!.lightVibrantSwatch!!.rgb
             } catch (e: NullPointerException) {
                 Color.GRAY
+            } catch (e: UninitializedPropertyAccessException) {
+                Color.GRAY
             }
+
+            val p0 = "${getBitrate(requireContext(), songUri!!)} • ${getSampling(requireContext(), songUri!!, audioContent!!.filePath)} • ${getFileExtension(requireContext(), songUri!!)}"
 
             withContext(Dispatchers.Main) {
                 title.text = audioContent!!.title
-                title.isSelected = true
-
                 artist.text = audioContent!!.artist
-                artist.isSelected = true
-
                 album.text = audioContent!!.album
-                album.isSelected = true
+                info.text = p0
 
-                info.text = getFileExtension(requireContext(), songUri!!)
+                title.isSelected = true
+                artist.isSelected = true
+                album.isSelected = true
                 info.isSelected = true
 
                 container.rippleColor = ColorStateList.valueOf(albumArtColor)
-
                 mimeImageView.loadFromUri(requireContext(), Uri.parse(audioContent!!.artUri))
             }
         }
     }
 
-    fun setSeekbarProgress(seekbarProgress: Int) {
+    private fun setSeekbarProgress(seekbarProgress: Int) {
         animation = ObjectAnimator.ofInt(seekBar, "progress", seekbarProgress)
-        animation!!.duration = 500 // 0.5 second
-        animation!!.interpolator = AccelerateDecelerateInterpolator()
+        animation!!.duration = 1000 // 0.5 second
+        animation!!.interpolator = LinearInterpolator()
         animation!!.start()
     }
 }

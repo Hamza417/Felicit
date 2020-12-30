@@ -53,9 +53,17 @@ object UriHelper {
     /**
      * Get extension of any Mime Type based content URI
      */
-    fun getFileExtension(context: Context, uri: Uri?): String? {
-        val contentResolver: ContentResolver = context.contentResolver
-        val mimeTypeMap = MimeTypeMap.getSingleton()
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri!!))
+    fun getFileExtension(context: Context, uri: Uri?): String {
+        return "." + MimeTypeMap.getSingleton().getExtensionFromMimeType(context.contentResolver.getType(uri!!))
+    }
+
+    /**
+     * Quickly formats the provided string into a
+     * valid URI
+     *
+     * @return URI
+     */
+    fun String.asUri(): Uri {
+        return Uri.parse(this)
     }
 }

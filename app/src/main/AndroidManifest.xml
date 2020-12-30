@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage"
         tools:remove="android:maxSdkVersion" />
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
@@ -33,9 +34,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FelicitMusicPlayer">
 
-        <activity android:name=".activities.MainActivity" />
+        <activity
+            android:name=".activities.MainActivity"
+            android:launchMode="singleTop" />
 
-        <activity android:name=".activities.LauncherActivity">
+        <activity
+            android:name=".activities.LauncherActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -58,17 +63,23 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".activities.FileAssociation"
+        <activity
+            android:name=".activities.FileAssociation"
+            android:autoRemoveFromRecents="true"
+            android:clearTaskOnLaunch="true"
+            android:documentLaunchMode="intoExisting"
             android:icon="@mipmap/ic_launcher"
-            android:theme="@style/Theme.Transparent"
-            android:roundIcon="@mipmap/ic_launcher_round">
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:theme="@style/Theme.Transparent">
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="android.intent.action.MUSIC_PLAYER" />
+
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.APP_MUSIC" />
+
                 <data android:scheme="content" />
                 <data android:mimeType="audio/*" />
             </intent-filter>
@@ -76,15 +87,19 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:scheme="file" />
                 <data android:mimeType="audio/*" />
             </intent-filter>
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="http" />
+                <data android:scheme="https" />
                 <data android:mimeType="audio/*" />
                 <data android:mimeType="application/ogg" />
                 <data android:mimeType="application/x-ogg" />
@@ -98,11 +113,12 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.OPENABLE" />
+
                 <data android:mimeType="vnd.android.cursor.dir/audio" />
             </intent-filter>
-
         </activity>
 
     </application>

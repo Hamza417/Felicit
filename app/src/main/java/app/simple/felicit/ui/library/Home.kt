@@ -16,6 +16,7 @@ import app.simple.felicit.adapters.home.LibraryIcons
 import app.simple.felicit.adapters.home.RandomPicksAdapter
 import app.simple.felicit.database.SongDatabase
 import app.simple.felicit.decoration.itemdecorator.HorizontalMarginItemDecoration
+import app.simple.felicit.interfaces.fragments.FragmentNavigator
 import app.simple.felicit.interfaces.adapters.Library
 import app.simple.felicit.medialoader.mediamodels.AudioContent
 import kotlinx.coroutines.CoroutineScope
@@ -116,26 +117,10 @@ class Home : Fragment(), Library {
     override fun onLibraryIconClicked(id: Int) {
         when (id) {
             0 -> {
-                fragment = requireFragmentManager().findFragmentByTag("songs")
-
-                if (fragment == null) fragment = AllSongs().newInstance(songs)
-
-                requireFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out, R.anim.dialog_in, R.anim.dialog_out)
-                    .replace(R.id.fragment_navigator, fragment!!, "songs")
-                    .addToBackStack(tag)
-                    .commit()
+                (requireActivity() as FragmentNavigator).navigateTo(id, songs)
             }
             1 -> {
-                fragment = requireFragmentManager().findFragmentByTag("artists")
-
-                if (fragment == null) fragment = Artists().newInstance(artists)
-
-                requireFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.dialog_in, R.anim.dialog_out, R.anim.dialog_in, R.anim.dialog_out)
-                    .replace(R.id.fragment_navigator, fragment!!, "artists")
-                    .addToBackStack(tag)
-                    .commit()
+                (requireActivity() as FragmentNavigator).navigateTo(id, artists)
             }
             2 -> {
             }

@@ -1,9 +1,7 @@
 package app.simple.felicit.services
 
 import android.app.*
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.media.*
 import android.net.Uri
 import android.os.Binder
@@ -66,7 +64,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         super.onCreate()
         mediaPlayer = MediaPlayer()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
+        registerBecomingNoisyReceiver()
         setupMediaSession()
     }
 
@@ -89,6 +87,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         audioManager.abandonAudioFocus(this)
         mediaPlayer?.release()
         notificationManager?.cancel(notificationId)
+        unregisterReceiver(becomingNoisyReceiver)
         sendLocalBroadcastIntent(actionQuitService, this)
         stopSelf()
     }
@@ -428,5 +427,18 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     fun getCurrentSong(): AudioContent {
         return songs[songPosition]
+    }
+
+    private fun registerBecomingNoisyReceiver() {
+        val intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        this.registerReceiver(becomingNoisyReceiver, intentFilter)
+    }
+
+    private val becomingNoisyReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(mediaPlayer!!.isPlaying) {
+                pause()
+            }
+        }
     }
 }

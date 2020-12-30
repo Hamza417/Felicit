@@ -16,7 +16,7 @@ import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
 import app.simple.felicit.glide.modules.GlideApp
 import app.simple.felicit.interfaces.adapters.SongAdapterCallbacks
 import app.simple.felicit.medialoader.mediamodels.AudioContent
-import app.simple.felicit.util.TimeFormat.getFormattedTime
+import app.simple.felicit.util.NumberHelper.getFormattedTime
 import app.simple.felicit.util.UriHelper.getFileExtension
 
 class SongsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), PopupTextProvider {
