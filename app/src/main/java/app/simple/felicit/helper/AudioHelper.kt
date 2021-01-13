@@ -1,4 +1,4 @@
-package app.simple.felicit.util
+package app.simple.felicit.helper
 
 import android.content.Context
 import android.media.MediaExtractor
@@ -11,7 +11,6 @@ import java.io.IOException
 
 object AudioHelper {
     /**
-     *
      * Calculates the sampling of the given audio file in
      * kHz and returns the appended string
      *
@@ -26,7 +25,7 @@ object AudioHelper {
      */
     fun getSampling(context: Context, fileUri: Uri, filePath: String): String {
         if (Looper.myLooper() == Looper.getMainLooper())
-            throw NotABackgroundThreadException("This function performs blocking calls and requires to be run in a background thread")
+            throw NotABackgroundThreadException()
 
         val mex = MediaExtractor()
         try {
@@ -47,7 +46,6 @@ object AudioHelper {
     }
 
     /**
-     *
      * Calculates the bitrate of the given audio file in
      * kbps or mbps and returns the appended string
      *
@@ -62,7 +60,7 @@ object AudioHelper {
     fun getBitrate(context: Context, fileUri: Uri): String {
 
         if(Looper.myLooper() == Looper.getMainLooper())
-            throw NotABackgroundThreadException("This function performs blocking calls and requires to be run in a background thread")
+            throw NotABackgroundThreadException()
 
         val mediaMetadataRetriever = MediaMetadataRetriever()
 
@@ -81,7 +79,7 @@ object AudioHelper {
     }
 
     /**
-     * This function is an extension function for [FileUtils.getBitrate]
+     * This function is an extension function for [FileHelper.getBitrate]
      * and can be used independently with any [Int] value
      *
      * @see getBitrate

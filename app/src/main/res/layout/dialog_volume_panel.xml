@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:orientation="vertical"
+    android:padding="25dp">
+
+    <app.simple.felicit.decoration.knob.AnalogController
+        android:id="@+id/volume_knob"
+        android:layout_width="@dimen/volume_knob_dimension"
+        android:layout_height="@dimen/volume_knob_dimension"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        app:initialValue="50"
+        app:maxValue="100"
+        app:minValue="0" />
+
+    <TextView
+        android:id="@+id/current_volume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@color/textPrimary"
+        android:fontFamily="@font/medium" />
+
+</LinearLayout>

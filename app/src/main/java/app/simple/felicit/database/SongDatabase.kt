@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 
 @Database(entities = [AudioContent::class], exportSchema = false, version = 1)
 abstract class SongDatabase : RoomDatabase() {

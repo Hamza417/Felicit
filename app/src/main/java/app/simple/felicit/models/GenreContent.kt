@@ -1,5 +1,4 @@
-package app.simple.felicit.medialoader.mediamodels
-
+package app.simple.felicit.models
 
 class GenreContent {
     var genreId = 0

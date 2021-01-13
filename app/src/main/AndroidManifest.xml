@@ -35,12 +35,10 @@
         android:theme="@style/Theme.FelicitMusicPlayer">
 
         <activity
-            android:name=".activities.MainActivity"
-            android:launchMode="singleTop" />
+            android:name=".activities.MainActivity" />
 
         <activity
-            android:name=".activities.LauncherActivity"
-            android:launchMode="singleTop">
+            android:name=".activities.LauncherActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

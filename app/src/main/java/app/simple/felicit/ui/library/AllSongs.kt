@@ -14,7 +14,7 @@ import app.simple.felicit.decoration.itemdecorator.VerticalMarginItemDecoration
 import app.simple.felicit.decoration.views.CustomRecyclerView
 import app.simple.felicit.interfaces.adapters.SongAdapterCallbacks
 import app.simple.felicit.interfaces.fragments.SongsFragmentCallbacks
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 import kotlinx.coroutines.*
 
 class AllSongs : Fragment(), SongAdapterCallbacks {

@@ -18,10 +18,10 @@ import app.simple.felicit.BuildConfig
 import app.simple.felicit.R
 import app.simple.felicit.decoration.views.CustomBottomSheetDialog
 import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
-import app.simple.felicit.helper.RingtoneUtils
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.util.RingtoneUtils
+import app.simple.felicit.models.AudioContent
 import app.simple.felicit.ui.dialogs.information.SongInformation
-import app.simple.felicit.util.FileUtils.getFormat
+import app.simple.felicit.helper.FileHelper.getFormat
 
 class SongOptions : CustomBottomSheetDialog() {
 

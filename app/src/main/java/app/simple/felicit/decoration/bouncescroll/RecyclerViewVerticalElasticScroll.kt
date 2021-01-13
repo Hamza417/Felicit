@@ -27,7 +27,7 @@ object RecyclerViewVerticalElasticScroll {
                     private fun handlePull(deltaDistance: Float) {
                         /*
                          * This is called on every touch event while the list is scrolled with a finger.
-                         * We simply update the view properties without animation.
+                         * simply update the view properties without animation.
                          */
                         val sign = if (direction == DIRECTION_BOTTOM) -1 else 1
                         val rotationDelta = sign * deltaDistance * overscrollRotationMagnitude

@@ -1,6 +1,5 @@
-package app.simple.felicit.util
+package app.simple.felicit.helper
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -10,14 +9,21 @@ import android.webkit.MimeTypeMap
 object UriHelper {
     /**
      *  Get raw path of the file from content URI
+     *
+     *  @param context
+     *  @param uri
+     *  @return path as string
      */
     fun getPathFromURI(context: Context, uri: Uri): String {
+
         var realPath = String()
+
         uri.path?.let { path ->
 
             val databaseUri: Uri
             val selection: String?
             val selectionArgs: Array<String>?
+
             if (path.contains("/document/image:")) { // files selected from "Documents"
                 databaseUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 selection = "_id=?"
@@ -27,6 +33,7 @@ object UriHelper {
                 selection = null
                 selectionArgs = null
             }
+
             try {
                 val column = "_data"
                 val projection = arrayOf(column)
@@ -39,9 +46,9 @@ object UriHelper {
                 )
                 cursor?.let {
                     if (it.moveToFirst()) {
-                        val columnIndex = cursor.getColumnIndexOrThrow(column)
-                        realPath = cursor.getString(columnIndex)
+                        realPath = cursor.getString(cursor.getColumnIndexOrThrow(column))
                     }
+
                     cursor.close()
                 }
             } catch (ignored: Exception) {

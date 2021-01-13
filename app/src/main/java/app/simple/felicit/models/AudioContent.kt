@@ -1,4 +1,4 @@
-package app.simple.felicit.medialoader.mediamodels
+package app.simple.felicit.models
 
 import android.os.Parcelable
 import androidx.room.ColumnInfo
@@ -62,6 +62,10 @@ class AudioContent : Parcelable {
     @IgnoredOnParcel
     @ColumnInfo(name = "date_taken")
     var dateTaken: Long = 0
+
+    @IgnoredOnParcel
+    @ColumnInfo (name = "date_last_played")
+    var dateLastPlayed = 0L
 
     @IgnoredOnParcel
     @ColumnInfo(name = "track")

@@ -4,10 +4,10 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import app.simple.felicit.medialoader.mediamodels.AudioAlbumContent
-import app.simple.felicit.medialoader.mediamodels.AudioArtistContent
-import app.simple.felicit.medialoader.mediamodels.AudioContent
-import app.simple.felicit.medialoader.mediamodels.GenreContent
+import app.simple.felicit.models.AudioAlbumContent
+import app.simple.felicit.models.AudioArtistContent
+import app.simple.felicit.models.AudioContent
+import app.simple.felicit.models.GenreContent
 
 /**
  * Due to horrible coding patterns of people at Google and whoever designed the MediaStore API

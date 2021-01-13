@@ -1,16 +1,8 @@
-package app.simple.felicit.util
+package app.simple.felicit.helper
 
-import android.content.Context
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import android.media.MediaMetadataRetriever
-import android.net.Uri
-import android.os.Looper
-import app.simple.felicit.exceptions.NotABackgroundThreadException
-import java.io.IOException
 import java.text.DecimalFormat
 
-object FileUtils {
+object FileHelper {
 
     private val format = DecimalFormat("#.##")
     private const val KB: Long = 1024

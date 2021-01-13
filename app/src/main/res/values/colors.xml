@@ -19,6 +19,11 @@
     <color name="albumCoverTextBackground">#FFFFFF</color>
     <color name="gradientEndColor">#FFFFFF</color>
 
+    <!-- Knob -->
+    <color name="knobOutlineAndIndicatorIdle">#7A464646</color>
+    <color name="knobOutlineAndIndicatorPressed">#464646</color>
+    <color name="knobHolder">#FFFFFF</color>
+
     // Fast Scroller
     <color name="fast_scroller_bg">@color/iconPrimary</color>
     <color name="fast_scroller_pressed">#f0f0f0</color>

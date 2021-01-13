@@ -1,7 +1,7 @@
 package app.simple.felicit.database
 
 import androidx.room.*
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 
 @Dao
 interface RandomDao {

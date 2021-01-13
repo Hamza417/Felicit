@@ -15,10 +15,13 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import app.simple.felicit.R
 import app.simple.felicit.activities.MainActivity
-import app.simple.felicit.loader.scanSongList
-import app.simple.felicit.medialoader.mediamodels.AudioContent
-import app.simple.felicit.util.ImageHelper.getBitmapFromUriForNotifications
-import app.simple.felicit.util.IntentHelper.sendLocalBroadcastIntent
+import app.simple.felicit.models.AudioContent
+import app.simple.felicit.helper.ImageHelper.getBitmapFromUriForNotifications
+import app.simple.felicit.helper.IntentHelper.sendLocalBroadcastIntent
+import app.simple.felicit.helper.SongListDatabaseHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.*
 import kotlin.math.ln
@@ -30,7 +33,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     private lateinit var mediaSessionCompat: MediaSessionCompat
     private lateinit var mediaControllerCompat: MediaControllerCompat
     private lateinit var mediaMetadataCompat: MediaMetadataCompat
-    private var mediaPlayer: MediaPlayer? = null
+    var mediaPlayer = MediaPlayer()
     private lateinit var audioManager: AudioManager
     private var notificationChannel: NotificationChannel? = null
     private var notificationManager: NotificationManager? = null
@@ -42,7 +45,8 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     private var timerTask: TimerTask? = null
 
     // Variables
-    var songPosition = 0
+    var songPosition = -1
+    private var currentVolume = 0
     private var iVolume = 0
     private val intVolumeMax = 100
     private val intVolumeMin = 0
@@ -62,9 +66,14 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     override fun onCreate() {
         super.onCreate()
-        mediaPlayer = MediaPlayer()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        registerBecomingNoisyReceiver()
+        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        baseContext.registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+
+        CoroutineScope(Dispatchers.Default).launch {
+            songs = SongListDatabaseHelper.getSongListFromDatabase(SongListDatabaseHelper.lastList, this@MusicService)
+        }
+
         setupMediaSession()
     }
 
@@ -76,20 +85,19 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
             actionPause -> pause()
             actionNext -> playNextSong()
             actionPrevious -> playPreviousSong()
-            actionQuitService -> onDestroy()
+            actionQuitService -> stopSelf()
         }
         return START_REDELIVER_INTENT
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         @Suppress("Deprecation")
         audioManager.abandonAudioFocus(this)
         mediaPlayer?.release()
         notificationManager?.cancel(notificationId)
-        unregisterReceiver(becomingNoisyReceiver)
+        baseContext.unregisterReceiver(becomingNoisyReceiver)
         sendLocalBroadcastIntent(actionQuitService, this)
-        stopSelf()
+        super.onDestroy()
     }
 
     private fun setupMediaSession() {
@@ -138,15 +146,15 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     fun initMediaPlayer() {
         try {
-            if (songs.size != 0 && mediaPlayer != null) {
-                mediaPlayer!!.reset()
-                mediaPlayer!!.setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
-                mediaPlayer!!.setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-                mediaPlayer!!.setOnPreparedListener(this)
-                mediaPlayer!!.setOnCompletionListener(this)
-                mediaPlayer!!.setOnErrorListener(this)
-                mediaPlayer!!.setDataSource(baseContext, Uri.parse(songs[songPosition].fileStringUri))
-                mediaPlayer!!.prepareAsync()
+            if (songs.size > 0) {
+                mediaPlayer.reset()
+                mediaPlayer.setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+                mediaPlayer.setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                mediaPlayer.setOnPreparedListener(this)
+                mediaPlayer.setOnCompletionListener(this)
+                mediaPlayer.setOnErrorListener(this)
+                mediaPlayer.setDataSource(baseContext, Uri.parse(songs[songPosition].fileStringUri))
+                mediaPlayer.prepareAsync()
             }
         } catch (ignored: IOException) {
         } catch (ignored: IllegalArgumentException) {
@@ -177,8 +185,9 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
                     updateVolume(-1)
                     if (iVolume == intVolumeMin) {
                         // Pause music
-                        if (mediaPlayer!!.isPlaying) {
-                            mediaPlayer!!.pause()
+                        if (mediaPlayer.isPlaying) {
+                            mediaPlayer.pause()
+                            currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                             showNotification(generateAction(R.drawable.ic_play, "Play", actionPlay))
                             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
                             stopForeground(false)
@@ -201,7 +210,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     private fun setPlaybackState(playbackState: Int) {
         mediaSessionCompat.setPlaybackState(
             PlaybackStateCompat.Builder()
-                .setState(playbackState, mediaPlayer!!.currentPosition.toLong(), 1f)
+                .setState(playbackState, mediaPlayer.currentPosition.toLong(), 1f)
                 .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
                 .build()
         )
@@ -222,9 +231,10 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         updateVolume(0)
 
         // Play music
-        if (!mediaPlayer!!.isPlaying) {
+        if (!mediaPlayer.isPlaying) {
             if (requestAudioFocus()) {
-                mediaPlayer!!.start()
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
+                mediaPlayer.start()
                 showNotification(generateAction(R.drawable.ic_pause, "Pause", actionPause))
                 setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
             }
@@ -273,7 +283,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     }
 
     fun seek(position: Int) {
-        mediaPlayer!!.seekTo(position)
+        mediaPlayer.seekTo(position)
         setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
     }
 
@@ -293,6 +303,8 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
             .build()
 
         mediaSessionCompat.setMetadata(mediaMetadata)
+
+        SongListDatabaseHelper.saveHistoryIntoDatabase(songs[songPosition], baseContext)
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
@@ -328,13 +340,13 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         } else if (fVolume > floatVolumeMax) {
             fVolume = floatVolumeMax
         }
-        mediaPlayer!!.setVolume(fVolume, fVolume)
+        mediaPlayer.setVolume(fVolume, fVolume)
     }
 
     override fun onAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                wasPlaying = mediaPlayer!!.isPlaying
+                wasPlaying = mediaPlayer.isPlaying
                 pause()
             }
             AudioManager.AUDIOFOCUS_GAIN -> {
@@ -342,7 +354,10 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
                     play()
                 }
             }
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> mediaPlayer!!.setVolume(0.2f, 0.2f)
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                wasPlaying = mediaPlayer.isPlaying
+                mediaPlayer.setVolume(0.2f, 0.2f)
+            }
         }
     }
 
@@ -365,7 +380,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     fun setSongs(songs: MutableList<AudioContent>) {
         this.songs = songs
-        scanSongList(songs, applicationContext)
+        SongListDatabaseHelper.saveHistoryIntoDatabase(SongListDatabaseHelper.lastList, songs, this)
     }
 
     private fun showNotification(action: NotificationCompat.Action) {
@@ -379,8 +394,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationChannel = NotificationChannel(channelId, name, importance)
-            notificationManager!!.createNotificationChannel(notificationChannel!!)
+            notificationManager!!.createNotificationChannel(NotificationChannel(channelId, name, importance))
         }
 
         val intentAction = Intent(this, MainActivity::class.java)
@@ -420,23 +434,13 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         return NotificationCompat.Action.Builder(icon, title, pendingIntent).build()
     }
 
-    fun isPlaying(): Boolean {
-        if (mediaPlayer == null) return false
-        return mediaPlayer!!.isPlaying
-    }
-
     fun getCurrentSong(): AudioContent {
         return songs[songPosition]
     }
 
-    private fun registerBecomingNoisyReceiver() {
-        val intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
-        this.registerReceiver(becomingNoisyReceiver, intentFilter)
-    }
-
     private val becomingNoisyReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if(mediaPlayer!!.isPlaying) {
+            if(mediaPlayer.isPlaying) {
                 pause()
             }
         }

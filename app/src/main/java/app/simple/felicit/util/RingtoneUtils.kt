@@ -1,4 +1,4 @@
-package app.simple.felicit.helper
+package app.simple.felicit.util
 
 import android.content.Context
 import android.content.Intent
@@ -11,7 +11,9 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 
 object RingtoneUtils {
+
     private const val LOG_TAG = "RingtoneUtils"
+
     fun setRingtone(context: Context, ringtoneUri: Uri): Boolean {
         Log.v(LOG_TAG, "Setting Ringtone to: $ringtoneUri")
         if (!hasMarshmallow()) {

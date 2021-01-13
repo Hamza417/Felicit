@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.HorizontalListViewHolder
 import app.simple.felicit.glide.modules.AudioCoverPagers.loadCoverForPagerFromFile
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 
 class HomePagerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

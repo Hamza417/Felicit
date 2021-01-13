@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.HorizontalListViewHolder
 import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 
 class RandomPicksAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

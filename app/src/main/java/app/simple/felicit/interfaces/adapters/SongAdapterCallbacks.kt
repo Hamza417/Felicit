@@ -1,7 +1,7 @@
 package app.simple.felicit.interfaces.adapters
 
 import androidx.annotation.NonNull
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 import org.jetbrains.annotations.NotNull
 
 interface SongAdapterCallbacks {

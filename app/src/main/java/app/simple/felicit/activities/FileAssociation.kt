@@ -10,8 +10,10 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import app.simple.felicit.ui.dialogs.action.FileAssociationPlayer
+import app.simple.felicit.ui.dialogs.action.VolumePanel
 import java.io.File
 
 class FileAssociation : AppCompatActivity() {
@@ -203,5 +205,18 @@ class FileAssociation : AppCompatActivity() {
         private fun isMediaDocument(uri: Uri?): Boolean {
             return "com.android.providers.media.documents" == uri!!.authority
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                VolumePanel().newInstance().show(supportFragmentManager, "volume_panel")
+                return true
+            }
+        }
+
+        return super.onKeyDown(keyCode, event)
     }
 }

@@ -1,4 +1,4 @@
-package app.simple.felicit.util
+package app.simple.felicit.helper
 
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow

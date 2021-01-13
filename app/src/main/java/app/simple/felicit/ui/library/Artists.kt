@@ -11,7 +11,7 @@ import app.simple.felicit.R
 import app.simple.felicit.adapters.library.ArtistAdapter
 import app.simple.felicit.decoration.bouncescroll.RecyclerViewVerticalElasticScroll.setupEdgeEffectFactory
 import app.simple.felicit.interfaces.sub.ArtistCallbacks
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 import app.simple.felicit.ui.sub.SubArtist
 
 class Artists : Fragment(), ArtistCallbacks {

@@ -18,7 +18,7 @@ import app.simple.felicit.database.SongDatabase
 import app.simple.felicit.decoration.itemdecorator.HorizontalMarginItemDecoration
 import app.simple.felicit.interfaces.fragments.FragmentNavigator
 import app.simple.felicit.interfaces.adapters.Library
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

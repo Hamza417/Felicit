@@ -3,15 +3,18 @@ package app.simple.felicit.activities
 import android.content.*
 import android.os.Bundle
 import android.os.IBinder
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import app.simple.felicit.R
+import app.simple.felicit.decoration.coloredshadow.BlurShadow
 import app.simple.felicit.interfaces.fragments.FragmentNavigator
 import app.simple.felicit.interfaces.fragments.SongsFragmentCallbacks
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 import app.simple.felicit.services.MusicService
 import app.simple.felicit.services.actionQuitService
+import app.simple.felicit.ui.dialogs.action.VolumePanel
 import app.simple.felicit.ui.dialogs.option.SongOptions
 import app.simple.felicit.ui.library.AllSongs
 import app.simple.felicit.ui.library.Artists
@@ -21,7 +24,7 @@ import com.fragula.Navigator
 class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNavigator {
 
     private var isServiceBound: Boolean = false
-    private var musicService: MusicService? = null
+    private lateinit var musicService: MusicService
     private lateinit var navigator: Navigator
     private lateinit var serviceConnection: ServiceConnection
     private lateinit var localBroadcastReceiver: BroadcastReceiver
@@ -35,6 +38,8 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNaviga
         navigator = findViewById(R.id.fragment_navigator)
         navigator.addFragment(Home())
 
+        BlurShadow.init(this)
+
         initService()
 
         localBroadcastReceiver = object : BroadcastReceiver() {
@@ -46,9 +51,6 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNaviga
         }
     }
 
-    /**
-     * TODO - improve service implementation
-     */
     private fun initService() {
 
         startService(Intent(applicationContext, MusicService::class.java))
@@ -56,15 +58,13 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNaviga
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
                 val binder: MusicService.MusicBinder = service as MusicService.MusicBinder
-
                 musicService = binder.service
-
-                if (musicService != null) {
-                    isServiceBound = true
-                }
+                isServiceBound = true
             }
 
-            override fun onServiceDisconnected(name: ComponentName) {}
+            override fun onServiceDisconnected(name: ComponentName) {
+                isServiceBound = false
+            }
         }
 
         bind()
@@ -97,9 +97,18 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNaviga
 
     override fun onSongClicked(songs: MutableList<AudioContent>, position: Int, id: Int?) {
         if (isServiceBound) {
-            musicService?.setSongs(songs)
-            musicService?.songPosition = position
-            musicService?.initMediaPlayer()
+            musicService.setSongs(songs)
+
+            if (musicService.songPosition >= 0 && musicService.getCurrentSong().musicID == songs[position].musicID) {
+                if (musicService.mediaPlayer.isPlaying) {
+                    musicService.pause()
+                } else {
+                    musicService.play()
+                }
+            } else {
+                musicService.songPosition = position
+                musicService.initMediaPlayer()
+            }
         } else {
             initService()
         }
@@ -122,5 +131,18 @@ class MainActivity : AppCompatActivity(), SongsFragmentCallbacks, FragmentNaviga
                 }
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                VolumePanel().newInstance().show(supportFragmentManager, "volume_panel")
+                return true
+            }
+        }
+
+        return super.onKeyDown(keyCode, event)
     }
 }

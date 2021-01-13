@@ -13,7 +13,7 @@ import app.simple.felicit.R
 import app.simple.felicit.decoration.customholders.VerticalListViewHolder
 import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
 import app.simple.felicit.interfaces.sub.ArtistCallbacks
-import app.simple.felicit.medialoader.mediamodels.AudioContent
+import app.simple.felicit.models.AudioContent
 
 class ArtistAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

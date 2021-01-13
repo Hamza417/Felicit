@@ -1,4 +1,4 @@
-package app.simple.felicit.medialoader.mediamodels
+package app.simple.felicit.models
 
 import java.util.*
 
