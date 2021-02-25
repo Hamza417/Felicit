@@ -9,7 +9,6 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import app.simple.felicit.R
-import app.simple.felicit.decoration.knob.AnalogController
 import app.simple.felicit.decoration.knob.RotaryKnobListener
 import app.simple.felicit.decoration.knob.RotaryKnobView
 import app.simple.felicit.decoration.views.CustomDialogFragment
@@ -19,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class VolumePanel : DialogFragment(), RotaryKnobListener {
 
-    private lateinit var volumeKnob: AnalogController
+    private lateinit var volumeKnob: RotaryKnobView
     private lateinit var volumeTextView: TextView
     private lateinit var audioManager: AudioManager
     private lateinit var valueAnimator: ValueAnimator
@@ -53,7 +52,7 @@ class VolumePanel : DialogFragment(), RotaryKnobListener {
 
         audioManager = requireActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         maxSupportedSystemVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        //volumeKnob.listener = this
+        volumeKnob.listener = this
 
         return view
     }
@@ -75,12 +74,8 @@ class VolumePanel : DialogFragment(), RotaryKnobListener {
             }
 
             val volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) * 100.0f / (audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * 1.0f)
-            //updateVolume(volumeKnob.value.toFloat(), volume)
+            updateVolume(volumeKnob.value.toFloat(), volume)
             true
-        }
-
-        volumeKnob.setOnProgressChangedListener {
-
         }
     }
 
@@ -102,20 +97,10 @@ class VolumePanel : DialogFragment(), RotaryKnobListener {
     override fun onKnobTouchEvent(event: MotionEvent) {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                volumeTextView.animate()
-                    .scaleY(1.3F)
-                    .scaleX(1.3F)
-                    .setDuration(500)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
+
             }
             MotionEvent.ACTION_UP -> {
-                volumeTextView.animate()
-                    .scaleY(1.0F)
-                    .scaleX(1.0F)
-                    .setDuration(500)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
+
             }
         }
     }
@@ -123,7 +108,7 @@ class VolumePanel : DialogFragment(), RotaryKnobListener {
     private fun updateVolume(currentVolume: Float, updatedVolume: Float) {
         valueAnimator = ValueAnimator.ofFloat(currentVolume, updatedVolume)
         valueAnimator.duration = 1000L
-        //valueAnimator.addUpdateListener { animation -> volumeKnob.setCurrentPosition(animation.animatedValue as Float) }
+        valueAnimator.addUpdateListener { animation -> volumeKnob.setCurrentPosition(animation.animatedValue as Float) }
         valueAnimator.start()
     }
 }

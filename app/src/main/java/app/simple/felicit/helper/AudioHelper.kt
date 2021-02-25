@@ -23,7 +23,7 @@ object AudioHelper {
      * @param filePath Path of the file
      * @return Sampling of the given audio file as String
      */
-    fun getSampling(context: Context, fileUri: Uri, filePath: String): String {
+    fun getSampling(context: Context, fileUri: Uri): String {
         if (Looper.myLooper() == Looper.getMainLooper())
             throw NotABackgroundThreadException()
 
@@ -32,7 +32,7 @@ object AudioHelper {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 mex.setDataSource(context.contentResolver.openAssetFileDescriptor(fileUri, "r")!!)
             } else {
-                mex.setDataSource(filePath)
+                mex.setDataSource(UriHelper.getPathFromURI(context, fileUri))
             }
             return "${mex.getTrackFormat(0).getInteger(MediaFormat.KEY_SAMPLE_RATE).toFloat() / 1000} kHz"
         } catch (e: IOException) {
@@ -59,7 +59,7 @@ object AudioHelper {
      */
     fun getBitrate(context: Context, fileUri: Uri): String {
 
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
             throw NotABackgroundThreadException()
 
         val mediaMetadataRetriever = MediaMetadataRetriever()

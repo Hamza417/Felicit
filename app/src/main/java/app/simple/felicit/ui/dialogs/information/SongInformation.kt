@@ -12,7 +12,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import app.simple.felicit.R
-import app.simple.felicit.decoration.views.CustomBottomSheetDialog
+import app.simple.felicit.decoration.views.CustomBottomSheetDialogFragment
 import app.simple.felicit.models.AudioContent
 import app.simple.felicit.helper.AudioHelper.getSampling
 import app.simple.felicit.helper.AudioHelper.toBitrate
@@ -28,7 +28,7 @@ import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
 
-class SongInformation : CustomBottomSheetDialog() {
+class SongInformation : CustomBottomSheetDialogFragment() {
 
     fun newInstance(audioContent: AudioContent): SongInformation {
         val args = Bundle()
@@ -165,7 +165,7 @@ class SongInformation : CustomBottomSheetDialog() {
                     composer = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER)!!
                 } catch (ignored: NullPointerException) {
                 }
-                sample = getSampling(requireContext(), audioContent.fileStringUri.asUri(), audioContent.filePath)
+                sample = getSampling(requireContext(), audioContent.fileStringUri.asUri())
 
                 mediaMetadataRetriever.close()
             } catch (ignored: IllegalArgumentException) {

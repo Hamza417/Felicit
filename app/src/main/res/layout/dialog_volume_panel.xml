@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="25dp">
 
-    <app.simple.felicit.decoration.knob.AnalogController
+    <app.simple.felicit.decoration.knob.RotaryKnobView
         android:id="@+id/volume_knob"
         android:layout_width="@dimen/volume_knob_dimension"
         android:layout_height="@dimen/volume_knob_dimension"

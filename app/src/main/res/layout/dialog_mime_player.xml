@@ -1,60 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mime_dialog"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/mainBackground"
+    android:layout_height="wrap_content"
     android:checkable="true"
     android:clickable="true"
-    android:focusable="true"
-    app:cardCornerRadius="@dimen/all_corner_radius">
+    android:focusable="true">
 
-    <LinearLayout
+    <app.simple.felicit.decoration.corners.DynamicCornerLinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_margin="15dp"
+        android:backgroundTint="@color/mainBackground"
+        android:elevation="20dp"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:translationZ="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingTop="20dp">
-
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/ic_icon_notifications"
-                android:padding="5dp"
-                app:tint="@color/appAccent"
-                tools:ignore="ContentDescription" />
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/mime_title"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="10dp"
-                android:ellipsize="marquee"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:scrollHorizontally="true"
-                android:singleLine="true"
-                android:fontFamily="@font/medium"
-                android:textColor="@color/textPrimary"
-                android:textSize="10pt"
-                android:transitionName="album_name" />
+                android:layout_weight="1"
+                android:drawablePadding="5dp"
+                android:gravity="center_vertical"
+                android:text="Felicit Mini Player"
+                android:textColor="@color/textTertiary"
+                app:drawableLeftCompat="@drawable/ic_icon"
+                tools:ignore="HardcodedText" />
+
+            <ImageButton
+                android:id="@+id/mimi_play_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ripple_btn"
+                android:tint="@color/iconSecondary"
+                android:layout_marginEnd="5dp"
+                android:src="@drawable/ic_pause" />
+
+            <ImageButton
+                android:id="@+id/mime_menu_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ripple_btn"
+                android:tint="@color/iconSecondary"
+                android:src="@drawable/ic_more_vert" />
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/mime_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:ellipsize="marquee"
+            android:fontFamily="@font/medium"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:paddingHorizontal="5dp"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/textPrimary"
+            android:textSize="10pt"
+            android:layout_marginTop="10dp"
+            android:transitionName="album_name" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="20dp">
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="20dp">
 
             <ImageView
                 android:id="@+id/album_art_mime"
@@ -88,9 +110,9 @@
                         android:layout_gravity="center_vertical"
                         android:layout_marginStart="5dp"
                         android:ellipsize="marquee"
+                        android:fontFamily="@font/regular"
                         android:marqueeRepeatLimit="marquee_forever"
                         android:scrollHorizontally="true"
-                        android:fontFamily="@font/regular"
                         android:singleLine="true"
                         android:textColor="@color/textSecondary"
                         android:textSize="5pt" />
@@ -160,22 +182,18 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:orientation="horizontal"
-            android:paddingHorizontal="5dp"
-            android:paddingBottom="10dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/current_time_mime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginStart="10dp"
                 android:layout_weight=".1"
-                android:maxLines="1"
                 android:gravity="center"
+                android:maxLines="1"
                 android:text="--:--"
                 android:textAlignment="center"
                 android:textColor="@color/textSecondary"
@@ -200,17 +218,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="10dp"
                 android:layout_weight=".1"
+                android:gravity="center"
                 android:maxLines="1"
                 android:text="--:--"
-                android:gravity="center"
                 android:textAlignment="center"
                 android:textColor="@color/textSecondary"
                 android:textSize="6pt"
                 tools:ignore="RtlCompat" />
 
         </LinearLayout>
-    </LinearLayout>
+    </app.simple.felicit.decoration.corners.DynamicCornerLinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</FrameLayout>

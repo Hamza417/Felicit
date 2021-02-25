@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Share" />
+    <item android:title="Set as Ringtone" />
+    <item android:title="File Information" />
+    <item android:title="Edit Metadata" />
+    <item android:title="Close" />
+
+</menu>

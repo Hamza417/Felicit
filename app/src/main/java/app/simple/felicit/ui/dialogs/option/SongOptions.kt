@@ -16,14 +16,14 @@ import android.widget.*
 import androidx.core.app.ShareCompat
 import app.simple.felicit.BuildConfig
 import app.simple.felicit.R
-import app.simple.felicit.decoration.views.CustomBottomSheetDialog
+import app.simple.felicit.decoration.views.CustomBottomSheetDialogFragment
 import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
 import app.simple.felicit.util.RingtoneUtils
 import app.simple.felicit.models.AudioContent
 import app.simple.felicit.ui.dialogs.information.SongInformation
 import app.simple.felicit.helper.FileHelper.getFormat
 
-class SongOptions : CustomBottomSheetDialog() {
+class SongOptions : CustomBottomSheetDialogFragment() {
 
     fun newInstance(audioContent: AudioContent, source: String): SongOptions {
         val args = Bundle()

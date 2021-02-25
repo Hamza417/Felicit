@@ -13,6 +13,7 @@ import android.widget.RelativeLayout
 import app.simple.felicit.R
 import app.simple.felicit.helper.ImageHelper.toBitmapDrawable
 import app.simple.felicit.math.Angle.getAngle
+import kotlin.math.abs
 import kotlin.math.atan2
 
 @SuppressLint("ClickableViewAccessibility")
@@ -70,20 +71,18 @@ class RotaryKnobView @JvmOverloads constructor(context: Context, attrs: Attribut
                 MotionEvent.ACTION_DOWN -> {
                     knobDrawable.startTransition(200)
                     lastDialAngle = knobImageView.rotation
-                    startAngle = getAngle(event.x.toDouble(), event.y.toDouble(), knobImageView.width.toFloat(), knobImageView.height.toFloat())
+                    startAngle = calculateAngle(event.x, event.y)
                     return true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val currentAngle = getAngle(event.x.toDouble(), event.y.toDouble(), knobImageView.width.toFloat(), knobImageView.height.toFloat())
-                    val finalAngle = ((currentAngle - startAngle) + lastDialAngle)
+                    val currentAngle = calculateAngle(event.x, event.y)
+                    val finalAngle = currentAngle - abs(startAngle) + lastDialAngle
 
                     println("$finalAngle : $currentAngle : $startAngle")
 
-                    // use only -150 to 150 range (knob min/max points
-                    if (knobImageView.rotation >= -150 && knobImageView.rotation <= 150) {
-                        setKnobPosition(finalAngle.coerceIn(-150F, 150F))
-
-                    //    println(knobImageView.rotation)
+                    // use only -150 to 150 range (knob min/max points)
+                    if (finalAngle >= -150 && finalAngle <= 150) {
+                        setKnobPosition(finalAngle)
 
                         // Calculate rotary value
                         // The range is the 300 degrees between -150 and 150, so we'll add 150 to adjust the

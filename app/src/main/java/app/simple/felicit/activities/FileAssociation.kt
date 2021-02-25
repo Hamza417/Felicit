@@ -20,7 +20,7 @@ class FileAssociation : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val fileAssociationPlayer = FileAssociationPlayer().newInstance(handleIntent()!!)
+        val fileAssociationPlayer = FileAssociationPlayer.newInstance(handleIntent()!!)
         fileAssociationPlayer.show(supportFragmentManager, "file_association_dialog")
     }
 

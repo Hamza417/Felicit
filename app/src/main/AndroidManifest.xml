@@ -62,6 +62,7 @@
         </receiver>
 
         <activity
+            android:label="Felicit Mini Player"
             android:name=".activities.FileAssociation"
             android:autoRemoveFromRecents="true"
             android:clearTaskOnLaunch="true"

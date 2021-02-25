@@ -46,7 +46,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
 
     // Variables
     var songPosition = -1
-    private var currentVolume = 0
     private var iVolume = 0
     private val intVolumeMax = 100
     private val intVolumeMin = 0
@@ -67,7 +66,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
     override fun onCreate() {
         super.onCreate()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         baseContext.registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
 
         CoroutineScope(Dispatchers.Default).launch {
@@ -187,7 +185,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
                         // Pause music
                         if (mediaPlayer.isPlaying) {
                             mediaPlayer.pause()
-                            currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                             showNotification(generateAction(R.drawable.ic_play, "Play", actionPlay))
                             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
                             stopForeground(false)
@@ -233,7 +230,6 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnEr
         // Play music
         if (!mediaPlayer.isPlaying) {
             if (requestAudioFocus()) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
                 mediaPlayer.start()
                 showNotification(generateAction(R.drawable.ic_pause, "Pause", actionPause))
                 setPlaybackState(PlaybackStateCompat.STATE_PLAYING)

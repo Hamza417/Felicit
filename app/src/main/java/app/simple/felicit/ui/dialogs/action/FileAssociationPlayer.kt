@@ -2,13 +2,8 @@ package app.simple.felicit.ui.dialogs.action
 
 import android.animation.ObjectAnimator
 import android.content.*
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
-import android.media.AudioManager
+import android.media.*
 import android.media.AudioManager.OnAudioFocusChangeListener
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,46 +11,26 @@ import android.os.Handler
 import android.os.Looper
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
-import android.widget.ImageView
-import android.widget.SeekBar
+import android.widget.*
 import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.TextView
-import android.widget.Toast
-import androidx.palette.graphics.Palette
 import app.simple.felicit.R
-import app.simple.felicit.decoration.views.CustomBottomSheetDialog
-import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromUri
-import app.simple.felicit.medialoader.MediaLoader
-import app.simple.felicit.models.AudioContent
-import app.simple.felicit.ui.dialogs.option.SongOptions
+import app.simple.felicit.decoration.views.CustomBottomSheetDialogFragment
+import app.simple.felicit.glide.modules.AudioCoverUtil.loadFromFileDescriptor
 import app.simple.felicit.helper.AudioHelper.getBitrate
 import app.simple.felicit.helper.AudioHelper.getSampling
-import app.simple.felicit.helper.ImageHelper.getBitmapFromUri
+import app.simple.felicit.helper.MetadataHelper
 import app.simple.felicit.helper.NumberHelper.getFormattedTime
-import app.simple.felicit.helper.UriHelper.asUri
 import app.simple.felicit.helper.UriHelper.getFileExtension
-import app.simple.felicit.helper.UriHelper.getPathFromURI
-import com.google.android.material.card.MaterialCardView
-import kotlinx.coroutines.CoroutineScope
+import app.simple.felicit.preference.SharedPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-
-class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListener {
-
-    fun newInstance(uri: String): FileAssociationPlayer {
-        val args = Bundle()
-        val fragment = FileAssociationPlayer()
-        fragment.arguments = args
-        args.putString("file_content_uri", uri)
-        return fragment
-    }
+class FileAssociationPlayer : CustomBottomSheetDialogFragment(), OnAudioFocusChangeListener {
 
     private val mediaPlayer: MediaPlayer = MediaPlayer()
     private var handler: Handler? = null
@@ -64,7 +39,6 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
     private var ongoingCall = false
     private var songUri: Uri? = null
     private var animation: ObjectAnimator? = null
-    private var audioContent: AudioContent? = null
 
     private lateinit var title: TextView
     private lateinit var artist: TextView
@@ -74,7 +48,10 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
     private lateinit var currentProgress: TextView
     private lateinit var mimeImageView: ImageView
     private lateinit var seekBar: SeekBar
-    private lateinit var container: MaterialCardView
+    private lateinit var container: FrameLayout
+
+    private lateinit var playButton: ImageButton
+    private lateinit var menuButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +59,8 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        SharedPreferences.init(requireContext())
+        dialog?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         return inflater.inflate(R.layout.dialog_mime_player, container, false)
     }
 
@@ -97,6 +76,14 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         info = view.findViewById(R.id.mime_file_info)
         container = view.findViewById(R.id.mime_dialog)
 
+        playButton = view.findViewById(R.id.mimi_play_button)
+        menuButton = view.findViewById(R.id.mime_menu_button)
+
+        duration = view.findViewById(R.id.current_duration_mime)
+        currentProgress = view.findViewById(R.id.current_time_mime)
+        seekBar = view.findViewById(R.id.seekbar_mime)
+        handler = Handler(Looper.getMainLooper())
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
@@ -108,45 +95,43 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         audioManager = requireActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         registerBecomingNoisyReceiver()
         callStateListener()
-
-        container.setOnClickListener {
-            if (!ongoingCall) {
-                if (mediaPlayer.isPlaying) {
-                    mediaPlayer.pause()
-                    handler!!.removeCallbacks(update)
-                    removeAudioFocus()
-                    mimeImageView.animate()
-                        .alpha(0.6f)
-                        .setDuration(1500)
-                        .start()
-                } else if (!mediaPlayer.isPlaying && requestAudioFocus()) {
-                    handler!!.post(update)
-                    mediaPlayer.start()
-                    mimeImageView.animate()
-                        .alpha(1f)
-                        .setDuration(1500)
-                        .start()
-                }
-            }
-        }
-
-        container.setOnLongClickListener {
-            audioContent?.let { it1 ->
-                SongOptions().newInstance(
-                    it1,
-                    SongOptions.Companion.Source.MIME.source
-                ).show(childFragmentManager, "song_options")
-            }
-            true
-        }
-
-        duration = view.findViewById(R.id.current_duration_mime)
-        currentProgress = view.findViewById(R.id.current_time_mime)
-        seekBar = view.findViewById(R.id.seekbar_mime)
-        handler = Handler(Looper.getMainLooper())
-
         getRawData()
         audioPlayer()
+
+        container.setOnClickListener {
+            playPause()
+        }
+
+        playButton.setOnClickListener {
+            playPause()
+        }
+
+        menuButton.setOnClickListener {
+            val wrapper: Context = ContextThemeWrapper(requireContext(), R.style.CustomPopupMenu)
+            val popup = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                PopupMenu(wrapper, menuButton, 0, 0, 0)
+            } else {
+                PopupMenu(requireContext(), menuButton)
+            }
+            popup.menuInflater.inflate(R.menu.mime_menu, popup.menu)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                popup.gravity = Gravity.END
+            }
+
+            //this.view?.animate()?.alpha(0.9F)?.setDuration(1000L)?.setInterpolator(DecelerateInterpolator())?.start()
+
+            popup.setOnMenuItemClickListener { item ->
+
+                true
+            }
+
+            popup.setOnDismissListener {
+                //this.view?.animate()?.alpha(1F)?.setDuration(1000L)?.setInterpolator(DecelerateInterpolator())?.start()
+            }
+
+            popup.show()
+        }
 
         mediaPlayer.setOnPreparedListener {
             if (requestAudioFocus()) {
@@ -211,6 +196,29 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         } catch (e: IOException) {
             Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
             dialog!!.dismiss()
+        }
+    }
+
+    private fun playPause() {
+        if (!ongoingCall) {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.pause()
+                playButton.setImageResource(R.drawable.ic_play)
+                handler!!.removeCallbacks(update)
+                removeAudioFocus()
+                mimeImageView.animate()
+                    .alpha(0.6f)
+                    .setDuration(1500)
+                    .start()
+            } else if (!mediaPlayer.isPlaying && requestAudioFocus()) {
+                handler!!.post(update)
+                mediaPlayer.start()
+                playButton.setImageResource(R.drawable.ic_pause)
+                mimeImageView.animate()
+                    .alpha(1f)
+                    .setDuration(1500)
+                    .start()
+            }
         }
     }
 
@@ -310,34 +318,27 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
     }
 
     private fun getRawData() {
-        CoroutineScope(Dispatchers.Default).launch {
-            audioContent = MediaLoader.withAudioContext(requireContext())!!.getMusicMetaData(getPathFromURI(requireContext(), songUri!!))
+        launch {
 
-            val albumArtColor = try {
-                val p0 = getBitmapFromUri(requireContext(), audioContent!!.artUri.asUri())?.let { Palette.from(it).generate() }
-                p0!!.lightVibrantSwatch!!.rgb
-            } catch (e: NullPointerException) {
-                Color.GRAY
-            } catch (e: UninitializedPropertyAccessException) {
-                Color.GRAY
+            var metadata: MetadataHelper.AudioMetadata
+            val songInfo: String
+
+            withContext(Dispatchers.Default) {
+                metadata = MetadataHelper.getAudioMetadata(context!!, songUri!!)
+                songInfo = "${getBitrate(context!!, songUri!!)} • ${getSampling(context!!, songUri!!)} • ${getFileExtension(context!!, songUri!!)}"
             }
 
-            val p0 = "${getBitrate(requireContext(), songUri!!)} • ${getSampling(requireContext(), songUri!!, audioContent!!.filePath)} • ${getFileExtension(requireContext(), songUri!!)}"
+            title.text = metadata.title
+            artist.text = metadata.artists
+            album.text = metadata.album
+            info.text = songInfo
 
-            withContext(Dispatchers.Main) {
-                title.text = audioContent!!.title
-                artist.text = audioContent!!.artist
-                album.text = audioContent!!.album
-                info.text = p0
+            title.isSelected = true
+            artist.isSelected = true
+            album.isSelected = true
+            info.isSelected = true
 
-                title.isSelected = true
-                artist.isSelected = true
-                album.isSelected = true
-                info.isSelected = true
-
-                container.rippleColor = ColorStateList.valueOf(albumArtColor)
-                mimeImageView.loadFromUri(requireContext(), Uri.parse(audioContent!!.artUri))
-            }
+            mimeImageView.loadFromFileDescriptor(requireContext(), songUri!!)
         }
     }
 
@@ -346,5 +347,15 @@ class FileAssociationPlayer : CustomBottomSheetDialog(), OnAudioFocusChangeListe
         animation!!.duration = 1000 // 0.5 second
         animation!!.interpolator = LinearInterpolator()
         animation!!.start()
+    }
+
+    companion object {
+        fun newInstance(uri: String): FileAssociationPlayer {
+            val args = Bundle()
+            val fragment = FileAssociationPlayer()
+            fragment.arguments = args
+            args.putString("file_content_uri", uri)
+            return fragment
+        }
     }
 }
