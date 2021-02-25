@@ -4,6 +4,6 @@
 Work in progress
 
 **Screenshots (Development)**
-<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/01.jpg" width="100%">
-<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/02.jpg" width="100%">
-<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/03.jpg" width="100%">
+<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/01.jpg" width="50%">
+<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/02.jpg" width="50%">
+<img src="https://github.com/Hamza417/Felicit/blob/master/screenshots/03.jpg" width="50%">
